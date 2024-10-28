@@ -18,6 +18,8 @@ module vint
   integer :: initial,itn1,itn2,npt1,npt2,ndimn,prnt
   real(wp) :: intres,chisq,stddev
   real(wp), dimension(20) :: limits
+  integer :: accevent,totevent
+  real(wp) :: eff
   ! variables above need to be set in main program
   INTERFACE reallocate
     MODULE PROCEDURE reallocate_iv,reallocate_im
@@ -26,16 +28,17 @@ module vint
     module procedure ran1_s, ran1_v
   END INTERFACE
   interface
-  function fxn(pt,weight)
-  implicit none
-  double precision, dimension(:), intent(in) :: pt
-  double precision, intent(in) :: weight
-  double precision :: fxn
-  end function fxn
+    function fxn(pt,weight)
+    implicit none
+    double precision, dimension(:), intent(in) :: pt
+    double precision, intent(in) :: weight
+    double precision :: fxn
+    end function fxn
   end interface
   public :: initial,itn1,itn2,npt1,npt2,ndimn,prnt
   public :: intres,chisq,stddev,limits
   public :: vegas,fxn
+  public :: accevent,totevent,eff
 
 contains
 

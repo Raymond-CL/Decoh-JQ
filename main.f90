@@ -3,6 +3,7 @@ module const
   implicit none
   real(wp), parameter :: PI = 4d0*atan(1d0)
   real(wp), parameter :: twoPI = 2d0*PI
+  real(wp), parameter :: PI2 = PI*PI
 end module const
 
 
@@ -31,6 +32,14 @@ end module phyconst
 
 
 
+module optflags
+  implicit none
+  ! options and flags
+  integer :: quench_opt
+end module optflags
+
+
+
 module kinematics
   use, intrinsic :: iso_fortran_env, only : wp => real64
   implicit none
@@ -41,7 +50,7 @@ module kinematics
   real(wp) :: yAmin ,yAmax
   real(wp) :: ptTrig,ptAsso
   real(wp) :: yTrig,yAsso
-  real(wp) :: pT
+  real(wp) :: pT,pTjet,pTq,pTg
   real(wp) :: x1,x2
   real(wp) :: x,y,th
   real(wp) :: mans,mant,manu
@@ -64,26 +73,18 @@ end function getu
 
 
 
-program main
-  use, intrinsic :: iso_fortran_env, only : stdout => output_unit
-  use time
-  !use bookkeep
-  !use glauber_opt
+subroutine readinput
   use vint
+  use optflags
   use kinematics
-  use qcd, only : setqcd
   implicit none
   integer :: stat,u
-  character(len=40), parameter :: pdfgrid = './grids/i2Tn2.00.pds'
   interface
-    function getu() result(unit)
-    implicit none
-    integer :: unit
-    end function getu
+  function getu() result(unit)
+  implicit none
+  integer :: unit
+  end function getu
   end interface
-
-  call time_start
-
   u = getu()
   open(u,iostat=stat,file='input.dat',status='old')
   if(stat.ne.0) call exit(11)
@@ -92,38 +93,81 @@ program main
   read(u,*) yTmin ,yTmax
   read(u,*) ptAmin,ptAmax
   read(u,*) yAmin ,yAmax
+  read(u,*) npt1,itn1
+  read(u,*) npt2,itn2
   close(u)
+  
+  quench_opt = 0
+  ! 0: no quenching (pp)
+  ! 1: constant Delta-E
+  ! 2: BDMPS D(e)
+  ! 3: BDMPS+hydro geometry qhat
+  
+  if(quench_opt.eq.0)  ndimn = 3
+  if(quench_opt.eq.1)  ndimn = 3
+  if(quench_opt.eq.2)  ndimn = 4
+  if(quench_opt.eq.3)  ndimn = 7
+  prnt = -1
+end subroutine readinput
+
+
+
+program main
+  use, intrinsic :: iso_fortran_env, only : stdout => output_unit
+  use time
+  use vint
+  use optflags
+  use kinematics
+  use qcd, only : setqcd
+  implicit none
+  character(len=40), parameter :: pdfgrid = './grids/i2Tn2.00.pds'
+  real(wp) :: dmin,dmax,bin,dL,dM,dR
+  integer :: id,nd
+
+  call time_start
+
+  call readinput
 
   call setCT18(pdfgrid)
+
   call setqcd(5,1)
-  !call setgeo(208)
 
-  !call initbook
-  !call newbook(1,.false.,"pt-spectrum",48,40d0,1000d0)
-  !call newbook(2,.false.,"hist-2",10,0d0,200d0)
+  ! linear scale
+  nd = 48
+  dmin = ptAmin;  dmax = ptAmax
+  bin = (dmax-dmin)/nd
+  ! log scale
+  ! nd = 100
+  ! dmin = 1d-3;  dmax = 1d0
+  ! bin = log(dmax/dmin)/nd
 
-  ndimn = 3
-  npt1 = 500000
-  npt2 = 5000000
-  itn1 = 10
-  itn2 = 1
-  prnt = -1
-  limits(1) = yTmin   
-  limits(2) = yAmin   
-  limits(3) = ptAmin  
-  limits(4) = yTmax   
-  limits(5) = yAmax   
-  limits(6) = ptAmax  
+  do id = 1,nd
+    ! linear scale
+    dL = dmin + (id-1)*bin
+    dR = dmin + id*bin
+    ! log scale
+    ! dL = dmin*exp((id-1)*bin)
+    ! dR = dmin*exp(id*bin)
+    dM = (dL+dR)/2d0
 
-  fillnow = .false.
-  initial = -1
-  call vegas(limits(1:2*ndimn),fxn,initial,npt1,itn1,prnt,intres,stddev,chisq)
-  fillnow = .true.
-  initial = +1
-  call vegas(limits(1:2*ndimn),fxn,initial,npt2,itn2,prnt,intres,stddev,chisq)
-  write(*,'(a,2(es15.4),a)') 'vegas result:',intres,stddev/intres,new_line('a')
+    limits(1) = yTmin   
+    limits(2) = yAmin   
+    limits(3) = dL
+    limits(4) = yTmax   
+    limits(5) = yAmax   
+    limits(6) = dR
 
-  !call printbook(stdout)
+    initial = -1
+    call vegas(limits(1:2*ndimn),fxn,initial,npt1,itn1,prnt,intres,stddev,chisq)
+    initial = +1
+    accevent = 0;  totevent = 0
+    call vegas(limits(1:2*ndimn),fxn,initial,npt2,itn2,prnt,intres,stddev,chisq)
+    eff = dble(accevent)/dble(totevent)*100d0
+    write(*,'(6(es10.2))') dL,dM,dR,intres/bin,stddev,eff
+    !write(*,'(a,2(es15.4),a)') 'vegas result:',intres,stddev/intres,new_line('a')
+
+  enddo
+
   call time_stop
   call print_time
 
@@ -135,15 +179,11 @@ function fxn(dx,wgt)
   use const
   use phyconst
   use kinematics
-  !use bookkeep
   use qcd, only: alphas
-  !use glauber_opt
   implicit none
   double precision, dimension(:), intent(in) :: dx
   double precision, intent(in) :: wgt
   double precision :: fxn
-  !double precision :: xsec_qq,xsec_qg,xsec_gg
-  !double precision :: r
   double precision, dimension(-6:+6) :: pdf1,pdf2,jff3,jff4
   integer :: i,j,nf
   double precision :: dis1,dis2,dis3,dis4,dis5,dis6,dis7,dis8
@@ -160,7 +200,11 @@ function fxn(dx,wgt)
   fxn = 0d0
   yTrig = dx(1)
   yAsso = dx(2)
-  pT = dx(3)
+  pTjet = dx(3)
+
+  pT = pTjet
+  pTq = pTjet
+  pTg = pTjet
 
   x1 = pT / CME * (exp(+yTrig) + exp(+yAsso))
   x2 = pT / CME * (exp(-yTrig) + exp(-yAsso))
@@ -278,11 +322,6 @@ function fxn(dx,wgt)
 
   fxn = fxn * twoPI * pt * x1*x2 / mans**2
   fxn = fxn / (yAmax-yAmin) * gev2barn / nano
-
-  !if(fillnow) then
-  !  call fillbook(1,pt,fxn*wgt)
-  !  call fillbook(1,pt,fxn*wgt)
-  !endif
 
   return
 
