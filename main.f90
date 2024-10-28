@@ -67,7 +67,7 @@ end function getu
 program main
   use, intrinsic :: iso_fortran_env, only : stdout => output_unit
   use time
-  use bookkeep
+  !use bookkeep
   !use glauber_opt
   use vint
   use kinematics
@@ -76,10 +76,10 @@ program main
   integer :: stat,u
   character(len=40), parameter :: pdfgrid = './grids/i2Tn2.00.pds'
   interface
-  function getu() result(unit)
+    function getu() result(unit)
     implicit none
     integer :: unit
-  end function getu
+    end function getu
   end interface
 
   call time_start
@@ -98,8 +98,8 @@ program main
   call setqcd(5,1)
   !call setgeo(208)
 
-  call initbook
-  call newbook(1,.false.,"pt-spectrum",48,40d0,1000d0)
+  !call initbook
+  !call newbook(1,.false.,"pt-spectrum",48,40d0,1000d0)
   !call newbook(2,.false.,"hist-2",10,0d0,200d0)
 
   ndimn = 3
@@ -123,7 +123,7 @@ program main
   call vegas(limits(1:2*ndimn),fxn,initial,npt2,itn2,prnt,intres,stddev,chisq)
   write(*,'(a,2(es15.4),a)') 'vegas result:',intres,stddev/intres,new_line('a')
 
-  call printbook(stdout)
+  !call printbook(stdout)
   call time_stop
   call print_time
 
@@ -135,14 +135,14 @@ function fxn(dx,wgt)
   use const
   use phyconst
   use kinematics
-  use bookkeep
+  !use bookkeep
   use qcd, only: alphas
   !use glauber_opt
   implicit none
   double precision, dimension(:), intent(in) :: dx
   double precision, intent(in) :: wgt
   double precision :: fxn
-  double precision :: xsec_qq,xsec_qg,xsec_gg
+  !double precision :: xsec_qq,xsec_qg,xsec_gg
   !double precision :: r
   double precision, dimension(-6:+6) :: pdf1,pdf2,jff3,jff4
   integer :: i,j,nf
@@ -279,10 +279,10 @@ function fxn(dx,wgt)
   fxn = fxn * twoPI * pt * x1*x2 / mans**2
   fxn = fxn / (yAmax-yAmin) * gev2barn / nano
 
-  if(fillnow) then
-    call fillbook(1,pt,fxn*wgt)
-    call fillbook(1,pt,fxn*wgt)
-  endif
+  !if(fillnow) then
+  !  call fillbook(1,pt,fxn*wgt)
+  !  call fillbook(1,pt,fxn*wgt)
+  !endif
 
   return
 

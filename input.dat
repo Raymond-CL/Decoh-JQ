@@ -1,0 +1,7 @@
+5020                          ! sqrt S
+40d0,1000d0                    ! trigger pt range
+-2.8d0,+2.8d0               ! trigger rap range
+40d0,1000d0                    ! associate pt range
+-2.8d0,+2.8d0               ! asociate rap range
+500000,10                       ! vegas warm-up
+5000000,1                      ! vegas end-run
