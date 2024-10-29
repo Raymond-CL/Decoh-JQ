@@ -3,5 +3,5 @@
 -2.8d0,+2.8d0               ! trigger rap range
 40d0,1000d0                    ! associate pt range
 -2.8d0,+2.8d0               ! asociate rap range
-50000,10                       ! vegas warm-up
-500000,1                      ! vegas end-run
+10000,10                       ! vegas warm-up
+100000,1                      ! vegas end-run

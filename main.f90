@@ -40,6 +40,15 @@ end module optflags
 
 
 
+module eventcounter
+  use, intrinsic :: iso_fortran_env, only : wp => real32
+  use, intrinsic :: iso_fortran_env, only : ip => int64
+  implicit none
+  integer(ip) :: accevent,totevent
+  real(wp) :: eff
+end module eventcounter
+
+
 module kinematics
   use, intrinsic :: iso_fortran_env, only : wp => real64
   implicit none
@@ -116,6 +125,7 @@ program main
   use, intrinsic :: iso_fortran_env, only : stdout => output_unit
   use time
   use vint
+  use eventcounter
   use optflags
   use kinematics
   use qcd, only : setqcd
@@ -163,7 +173,7 @@ program main
     accevent = 0;  totevent = 0
     call vegas(limits(1:2*ndimn),fxn,initial,npt2,itn2,prnt,intres,stddev,chisq)
     eff = dble(accevent)/dble(totevent)*100d0
-    write(*,'(6(es10.2))') dL,dM,dR,intres/bin,stddev,eff
+    write(*,'(5(es11.3),f10.2)') dL,dM,dR,intres/bin,stddev,eff
     !write(*,'(a,2(es15.4),a)') 'vegas result:',intres,stddev/intres,new_line('a')
 
   enddo
@@ -178,6 +188,7 @@ end program main
 function fxn(dx,wgt)
   use const
   use phyconst
+  use eventcounter
   use kinematics
   use qcd, only: alphas
   implicit none
@@ -198,6 +209,8 @@ function fxn(dx,wgt)
   end interface
 
   fxn = 0d0
+  totevent = totevent + 1
+
   yTrig = dx(1)
   yAsso = dx(2)
   pTjet = dx(3)
@@ -323,6 +336,7 @@ function fxn(dx,wgt)
   fxn = fxn * twoPI * pt * x1*x2 / mans**2
   fxn = fxn / (yAmax-yAmin) * gev2barn / nano
 
+  accevent = accevent + 1
   return
 
 end function fxn

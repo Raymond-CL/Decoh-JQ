@@ -18,8 +18,6 @@ module vint
   integer :: initial,itn1,itn2,npt1,npt2,ndimn,prnt
   real(wp) :: intres,chisq,stddev
   real(wp), dimension(20) :: limits
-  integer :: accevent,totevent
-  real(wp) :: eff
   ! variables above need to be set in main program
   INTERFACE reallocate
     MODULE PROCEDURE reallocate_iv,reallocate_im
@@ -38,7 +36,6 @@ module vint
   public :: initial,itn1,itn2,npt1,npt2,ndimn,prnt
   public :: intres,chisq,stddev,limits
   public :: vegas,fxn
-  public :: accevent,totevent,eff
 
 contains
 
