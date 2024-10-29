@@ -55,10 +55,10 @@ contains
   l = log(t)
   as = 1d0/(b0*t)
   if(qcdloop.ge.2) then
-    as = as * -b1*l/(b0**2*t)
+    as = as - b1*l/(b0**2*t)
   endif
   if(qcdloop.ge.3) then
-    as = as * +(b1**2*(l**2-l-1d0)+b0*b2)/(b0**4*t**2)
+    as = as +(b1**2*(l**2-l-1d0)+b0*b2)/(b0**4*t**2)
   endif
   return
   end function alphas

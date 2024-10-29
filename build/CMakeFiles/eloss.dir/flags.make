@@ -6,5 +6,5 @@ Fortran_DEFINES =
 
 Fortran_INCLUDES = 
 
-Fortran_FLAGS =  -fno-strict-overflow
+Fortran_FLAGS =  -std=legacy -fno-strict-overflow
 

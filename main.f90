@@ -13,20 +13,20 @@ module phyconst
   use const
   implicit none
   ! conversion units
-  real(wp), parameter :: planck = 6.62607015d-34    ! Planck constant (J.s)
-  real(wp), parameter :: planckbar = planck/twoPI   ! reduced Planck (J.s)
-  real(wp), parameter :: charge = 1.602176634d-19   ! chrg mag (J/eV)
-  real(wp), parameter :: hbar = planckbar/charge    ! hbar (eV.s)
-  real(wp), parameter :: light = 299792458d0        ! light speed (m/s)
-  real(wp), parameter :: hbarc = hbar*light         ! conversion unit (eV.m)
+  real(wp), parameter :: planck = 6.62607015d-34   ! Planck constant (J.s)
+  real(wp), parameter :: planckbar = planck/twoPI  ! reduced Planck (J.s)
+  real(wp), parameter :: charge = 1.602176634d-19  ! chrg mag (J/eV)
+  real(wp), parameter :: hbar = planckbar/charge   ! hbar (eV.s)
+  real(wp), parameter :: light = 299792458d0      ! light speed (m/s)
+  real(wp), parameter :: hbarc = hbar*light      ! conversion unit (eV.m)
   real(wp), parameter :: giga = 1d+9
   real(wp), parameter :: mili = 1d-3
   real(wp), parameter :: micro = 1d-6
   real(wp), parameter :: nano = 1d-9
   real(wp), parameter :: pico = 1d-12
   real(wp), parameter :: femto = 1d-15
-  real(wp), parameter :: fm2barn = 1d-2             ! fm^2->barns (barn/fm^2)
-  real(wp), parameter :: gevfm = hbarc/giga/femto   ! common conversion (GeV.fm)
+  real(wp), parameter :: fm2barn = 1d-2         ! fm^2->barns (barn/fm^2)
+  real(wp), parameter :: gevfm = hbarc/giga/femto  ! common conversion (GeV.fm)
   real(wp), parameter :: gev2barn = gevfm*gevfm*fm2barn ! (GeV^2.barn)
 end module phyconst
 
@@ -41,12 +41,13 @@ end module optflags
 
 
 module eventcounter
-  use, intrinsic :: iso_fortran_env, only : wp => real32
+  use, intrinsic :: iso_fortran_env, only : wp => real64
   use, intrinsic :: iso_fortran_env, only : ip => int64
   implicit none
   integer(ip) :: accevent,totevent
   real(wp) :: eff
 end module eventcounter
+
 
 
 module kinematics
@@ -89,10 +90,10 @@ subroutine readinput
   implicit none
   integer :: stat,u
   interface
-  function getu() result(unit)
-  implicit none
-  integer :: unit
-  end function getu
+    function getu() result(unit)
+      implicit none
+      integer :: unit
+    end function getu
   end interface
   u = getu()
   open(u,iostat=stat,file='input.dat',status='old')
@@ -105,17 +106,17 @@ subroutine readinput
   read(u,*) npt1,itn1
   read(u,*) npt2,itn2
   close(u)
-  
+
   quench_opt = 0
   ! 0: no quenching (pp)
   ! 1: constant Delta-E
   ! 2: BDMPS D(e)
   ! 3: BDMPS+hydro geometry qhat
-  
   if(quench_opt.eq.0)  ndimn = 3
   if(quench_opt.eq.1)  ndimn = 3
   if(quench_opt.eq.2)  ndimn = 4
   if(quench_opt.eq.3)  ndimn = 7
+
   prnt = -1
 end subroutine readinput
 
@@ -160,13 +161,10 @@ program main
     ! dR = dmin*exp(id*bin)
     dM = (dL+dR)/2d0
 
-    limits(1) = yTmin   
-    limits(2) = yAmin   
-    limits(3) = dL
-    limits(4) = yTmax   
-    limits(5) = yAmax   
-    limits(6) = dR
-
+    limits(1) = yTmin;          limits(ndimn+1) = yTmax
+    limits(2) = yAmin;          limits(ndimn+2) = yAmax
+    limits(3) = dL;             limits(ndimn+3) = dR
+    
     initial = -1
     call vegas(limits(1:2*ndimn),fxn,initial,npt1,itn1,prnt,intres,stddev,chisq)
     initial = +1
@@ -175,12 +173,10 @@ program main
     eff = dble(accevent)/dble(totevent)*100d0
     write(*,'(5(es11.3),f10.2)') dL,dM,dR,intres/bin,stddev,eff
     !write(*,'(a,2(es15.4),a)') 'vegas result:',intres,stddev/intres,new_line('a')
-
   enddo
 
   call time_stop
   call print_time
-
 end program main
 
 
@@ -190,21 +186,26 @@ function fxn(dx,wgt)
   use phyconst
   use eventcounter
   use kinematics
-  use qcd, only: alphas
+  use qcd, only: alphas,nf
   implicit none
   double precision, dimension(:), intent(in) :: dx
   double precision, intent(in) :: wgt
   double precision :: fxn
   double precision, dimension(-6:+6) :: pdf1,pdf2,jff3,jff4
-  integer :: i,j,nf
-  double precision :: dis1,dis2,dis3,dis4,dis5,dis6,dis7,dis8
-  double precision :: sig1,sig2,sig3,sig4,sig5,sig6,sig7,sig8
+  integer :: i,j
+  real(wp) :: dis1t,dis1u,dis2,dis3,dis4t,dis4u,dis5,&
+  dis6,dis7tq,dis7tg,dis7uq,dis7ug,dis8!,dis7t,dis7u
+  real(wp) :: sig1t,sig1u,sig2,sig3,sig4t,sig4u,sig5,&
+  sig6,sig7tq,sig7tg,sig7uq,sig7ug,sig8!,sig7t,sig7u
+  !double precision :: dis1,dis2,dis3,dis4,dis5,dis6,dis7,dis8
+  !double precision :: sig1,sig2,sig3,sig4,sig5,sig6,sig7,sig8
+  real(wp) :: tempfunc
   interface
     function CT18Pdf(iparton,x,Q)
-    implicit double precision (a-h,o-z)
+      implicit double precision (a-h,o-z)
     end function CT18Pdf
     function CT18Alphas (Q)
-    implicit double precision (a-h,o-z)
+      implicit double precision (a-h,o-z)
     end function CT18Alphas
   end interface
 
@@ -233,38 +234,64 @@ function fxn(dx,wgt)
   !as = CT18Alphas(muren)
   as = alphas(muren)
 
-  pdf1 = 1d0
-  pdf2 = 1d0
-  jff3 = 1d0
-  jff4 = 1d0
+  pdf1 = 1d0;         pdf2 = 1d0
+  jff3 = 1d0;         jff4 = 1d0
 
-  nf = 5
   do i = -nf, +nf
     pdf1(i) = CT18Pdf(i,x1,mufac)
     pdf2(i) = CT18Pdf(i,x2,mufac)
   enddo
+
+  ! set distributions
+  ! mass ordered parton flavours
+  ! i: -6  -5  -4  -3  -2  -1  0  +1  +2  +3  +4  +5  +6
+  !    tb  bb  cb  sb  db  ub  g   u   d   s   c   b   t
+
+  ! initialize
+  pdf1=1d0; pdf2=1d0; jff3=1d0; jff4=1d0
+  
+  do i = -nf,+nf
+    pdf1(i) = CT18pdf(i,dble(x1),dble(mufac))
+    pdf2(i) = CT18pdf(i,dble(x2),dble(mufac))
+  enddo
   
   ! q(qb) + q'(qb') -> q(qb) + q'(qb') : only t-channel
-  dis1 = 0d0
+  dis1t = 0d0
   do i = 1,nf
   do j = 1,nf
   if(i.ne.j) then
-    dis1 = dis1 + (pdf1(+i)*pdf2(+j) &
-                  +pdf1(+i)*pdf2(-j) &
-                  +pdf1(-i)*pdf2(+j) &
-                  +pdf1(-i)*pdf2(-j))
+    dis1t = dis1t + (pdf1(+i)*pdf2(+j)*jff3(+i)*jff4(+j) &
+                    +pdf1(+i)*pdf2(-j)*jff3(+i)*jff4(-j) &
+                    +pdf1(-i)*pdf2(+j)*jff3(-i)*jff4(+j) &
+                    +pdf1(-i)*pdf2(-j)*jff3(-i)*jff4(-j))
   endif
   enddo
   enddo
-  sig1 = as*as * 4d0/9d0 * (mans**2 + manu**2)/mant**2
+  sig1t = as*as * 4d0/9d0 * (mans**2 + manu**2)/mant**2
+
+  ! q(qb) + q'(qb') -> q'(qb') + q(qb) : only u-channel
+  dis1u = 0d0
+  do i = 1,nf
+  do j = 1,nf
+  if(i.ne.j) then
+    dis1u = dis1u + (pdf1(+i)*pdf2(+j)*jff3(+j)*jff4(+i) &
+                    +pdf1(+i)*pdf2(-j)*jff3(-j)*jff4(+i) &
+                    +pdf1(-i)*pdf2(+j)*jff3(+j)*jff4(-i) &
+                    +pdf1(-i)*pdf2(-j)*jff3(-j)*jff4(-i))
+  endif
+  enddo
+  enddo
+  sig1u = as*as * 4d0/9d0 * (mans**2 + mant**2)/manu**2
 
   ! q(qb) + qb(q) -> q'(qb') + qb'(q') : only s-channel
   dis2 = 0d0
   do i = 1,nf
   do j = 1,nf
   if(i.ne.j) then
-    dis2 = dis2 + (pdf1(+i)*pdf2(-i) &
-                  +pdf1(-i)*pdf2(+i))
+    dis2 = dis2 + (pdf1(+i)*pdf2(-i)*jff3(+j)*jff4(-j) &
+                  +pdf1(+i)*pdf2(-i)*jff3(-j)*jff4(+j) &
+                  +pdf1(-i)*pdf2(+i)*jff3(+j)*jff4(-j) &
+                  +pdf1(-i)*pdf2(+i)*jff3(-j)*jff4(+j))
   endif
   enddo
   enddo
@@ -273,70 +300,286 @@ function fxn(dx,wgt)
   ! q(qb) + q(qb) -> q(qb) + q(qb) : t- and u-channel
   dis3 = 0d0
   do i = 1,nf
-    dis3 = dis3 + (pdf1(+i)*pdf2(+i) &
-                  +pdf1(-i)*pdf2(-i))
+    dis3 = dis3 + (pdf1(+i)*pdf2(+i)*jff3(+i)*jff4(+i) &
+                  +pdf1(-i)*pdf2(-i)*jff3(-i)*jff4(-i))
   enddo
   sig3 = as*as * 4d0/9d0 * ((mans**2+manu**2)/mant**2 &
                            +(mans**2+mant**2)/manu**2 &
                            -2d0/3d0*mans**2/manu/mant)
-  sig3 = sig3 / 2d0
 
   ! q(qb) + qb(q) -> q(qb) + qb(q) : t- and s-channel
-  dis4 = 0d0
+  dis4t = 0d0
   do i = 1,nf
-    dis4 = dis4 + (pdf1(+i)*pdf2(-i) &
-                  +pdf1(-i)*pdf2(+i))
+    dis4t = dis4t + (pdf1(+i)*pdf2(-i)*jff3(+i)*jff4(-i) &
+                    +pdf1(-i)*pdf2(+i)*jff3(-i)*jff4(+i))
   enddo
-  sig4 =  as*as * 4d0/9d0 * ((mans**2+manu**2)/mant**2 &
-                            +(mant**2+manu**2)/mans**2 &
-                            -2d0/3d0*manu**2/mans/mant)
+  sig4t =  as*as * 4d0/9d0 * ((mans**2+manu**2)/mant**2 &
+                             +(mant**2+manu**2)/mans**2 &
+                             -2d0/3d0*manu**2/mans/mant)
+
+  ! q(qb) + qb(q) -> qb(q) + q(qb) : u- and s-channel
+  dis4u = 0d0
+  do i = 1,nf
+    dis4u = dis4u + (pdf1(+i)*pdf2(-i)*jff3(-i)*jff4(+i) &
+                    +pdf1(-i)*pdf2(+i)*jff3(+i)*jff4(-i))
+  enddo
+  sig4u =  as*as * 4d0/9d0 * ((mans**2+mant**2)/manu**2 &
+                             +(mant**2+manu**2)/mans**2 &
+                             -2d0/3d0*mant**2/mans/manu)
 
   ! q(qb) + qb(q) -> g + g : scatter(t-,u-channel) + annihlate(s-channel)
   dis5 = 0d0
   do i = 1,nf
-    dis5 = dis5 + (pdf1(+i)*pdf2(-i) &
-                  +pdf1(-i)*pdf2(+i))
+    dis5 = dis5 + (pdf1(+i)*pdf2(-i)*jff3(0)*jff4(0) &
+                  +pdf1(-i)*pdf2(+i)*jff3(0)*jff4(0))
   enddo
   sig5 = as*as * (32d0/27d0 * (mant**2+manu**2)/mant/manu &
                  -8d0 / 3d0 * (mant**2+manu**2)/mans**2)
-  sig5 = sig5 / 2d0
 
   ! g + g -> q(qb) + qb(q) : scatter(t-,u-channel) + creation(s-channel)
   dis6 = 0d0
   do j=1,nf
-    dis6 = dis6 + pdf1(0)*pdf2(0)
+    dis6 = dis6 + (pdf1(0)*pdf2(0)*jff3(+j)*jff4(-j) &
+                  +pdf1(0)*pdf2(0)*jff3(-j)*jff4(+j))
   enddo
   sig6 = as*as * (1d0/6d0 * (mant**2+manu**2)/mant/manu &
                  -3d0/8d0 * (mant**2+manu**2)/mans**2)
 
   ! g + q(qb) -> g + q(qb) : triple gluon at t-channel
-  dis7 = 0d0
+  dis7tq = 0d0
   do i=1,nf
-    dis7 = dis7 + (pdf1(0)*pdf2(+i) &
-                  +pdf1(0)*pdf2(-i) &
-                  +pdf1(+i)*pdf2(0) &
-                  +pdf1(-i)*pdf2(0))
+    dis7tq = dis7tq + (pdf1(0)*pdf2(+i)*jff3(0)*jff4(+i) &
+                      +pdf1(0)*pdf2(-i)*jff3(0)*jff4(-i))
   enddo
-  sig7 = as*as * ((manu**2+mans**2)/mant**2 - 4d0/9d0*(mans**2+manu**2)/mans/manu)
+  sig7tq = as*as * ((manu**2+mans**2)/mant**2 - 4d0/9d0*(mans**2+manu**2)/mans/manu)
   
+  ! q(qb) + g -> q(qb) + g : triple gluon at t-channel
+  dis7tg = 0d0
+  do i=1,nf
+    dis7tg = dis7tg + (pdf1(+i)*pdf2(0)*jff3(+i)*jff4(0) &
+                      +pdf1(-i)*pdf2(0)*jff3(-i)*jff4(0))
+  enddo
+  sig7tg = as*as * ((manu**2+mans**2)/mant**2 - 4d0/9d0*(mans**2+manu**2)/mans/manu)
+
+  ! g + q(qb) -> q(qb) + g : triple gluon at u-channel
+  dis7ug = 0d0
+  do i=1,nf
+    dis7ug = dis7ug + (pdf1(0)*pdf2(+i)*jff3(+i)*jff4(0) &
+                      +pdf1(0)*pdf2(-i)*jff3(-i)*jff4(0))
+  enddo
+  sig7ug = as*as * ((mant**2+mans**2)/manu**2 - 4d0/9d0*(mans**2+mant**2)/mans/mant)
+
+  ! q(qb) + g -> g + q(qb) : triple gluon at u-channel
+  dis7uq = 0d0
+  do i=1,nf
+    dis7uq = dis7uq + (pdf1(+i)*pdf2(0)*jff3(0)*jff4(+i) &
+                      +pdf1(-i)*pdf2(0)*jff3(0)*jff4(-i))
+  enddo
+  sig7uq = as*as * ((mant**2+mans**2)/manu**2 - 4d0/9d0*(mans**2+mant**2)/mans/mant)
+
   ! g + g -> g + g :
-  dis8 = pdf1(0)*pdf2(0)
+  dis8 = pdf1(0)*pdf2(0)*jff3(0)*jff4(0)
   sig8 = as*as * 9d0/2d0*(3d0-mant*manu/mans**2-mans*manu/mant**2-mans*mant/manu**2)
-  sig8 = sig8 / 2d0
 
-  fxn = fxn   + dis1    * sig1 &
-              + dis2    * sig2 &
-              + dis3    * sig3 &
-              + dis4    * sig4 &
-              + dis5    * sig5 &
-              + dis6    * sig6 &
-              + dis7    * sig7 &
-              + dis8    * sig8
+  fxn = fxn + dis1t * sig1t &
+            + dis1u * sig1u &
+            + dis2  * sig2 &
+            + dis3  * sig3 &
+            + dis4t * sig4t &
+            + dis4u * sig4u &
+!           + dis5  * sig5 &
+            + dis6  * sig6 &
+!           + dis7tq * sig7tq &
+            + dis7tg * sig7tg &
+!           + dis7uq * sig7uq &
+            + dis7ug * sig7ug !&
+!           + dis8  * sig8
 
-  fxn = fxn * twoPI * pt * x1*x2 / mans**2
+  fxn = fxn * twoPI * ptTrig * x1*x2 / mans**2
   fxn = fxn / (yAmax-yAmin) * gev2barn / nano
+
+  tempfunc = fxn
+
+  ! separating quark and gluon contributions
+
+  ! assume jet(3) is gluon
+
+  ptTrig = ptAsso !+ 50d0
+
+  x1 = ptTrig / CME * (exp(+yTrig) + exp(+yAsso))
+  x2 = ptTrig / CME * (exp(-yTrig) + exp(-yAsso))
+  if(x1.le.0d0 .or. x1.gt.1d0) return
+  if(x2.le.0d0 .or. x2.gt.1d0) return
+
+  mans = +x1*x2*CME*CME
+  mant = -x1*CME*ptTrig*exp(-yTrig) 
+  manu = -x2*CME*ptTrig*exp(+yTrig)
+
+  mufac = ptTrig !/ 2d0 ! scale sensitivity multiplier
+  muren = mufac
+  as = alphas(muren)
+
+  ! set distributions
+  ! mass ordered parton flavours
+  ! i: -6  -5  -4  -3  -2  -1  0  +1  +2  +3  +4  +5  +6
+  !    tb  bb  cb  sb  db  ub  g   u   d   s   c   b   t
+
+  ! initialize
+  pdf1=1d0; pdf2=1d0; jff3=1d0; jff4=1d0
+  
+  do i = -nf,+nf
+    pdf1(i) = CT18pdf(i,dble(x1),dble(mufac))
+    pdf2(i) = CT18pdf(i,dble(x2),dble(mufac))
+  enddo
+  
+  ! q(qb) + q'(qb') -> q(qb) + q'(qb') : only t-channel
+  dis1t = 0d0
+  do i = 1,nf
+  do j = 1,nf
+  if(i.ne.j) then
+    dis1t = dis1t + (pdf1(+i)*pdf2(+j)*jff3(+i)*jff4(+j) &
+                    +pdf1(+i)*pdf2(-j)*jff3(+i)*jff4(-j) &
+                    +pdf1(-i)*pdf2(+j)*jff3(-i)*jff4(+j) &
+                    +pdf1(-i)*pdf2(-j)*jff3(-i)*jff4(-j))
+  endif
+  enddo
+  enddo
+  sig1t = as*as * 4d0/9d0 * (mans**2 + manu**2)/mant**2
+
+  ! q(qb) + q'(qb') -> q'(qb') + q(qb) : only u-channel
+  dis1u = 0d0
+  do i = 1,nf
+  do j = 1,nf
+  if(i.ne.j) then
+    dis1u = dis1u + (pdf1(+i)*pdf2(+j)*jff3(+j)*jff4(+i) &
+                    +pdf1(+i)*pdf2(-j)*jff3(-j)*jff4(+i) &
+                    +pdf1(-i)*pdf2(+j)*jff3(+j)*jff4(-i) &
+                    +pdf1(-i)*pdf2(-j)*jff3(-j)*jff4(-i))
+  endif
+  enddo
+  enddo
+  sig1u = as*as * 4d0/9d0 * (mans**2 + mant**2)/manu**2
+
+  ! q(qb) + qb(q) -> q'(qb') + qb'(q') : only s-channel
+  dis2 = 0d0
+  do i = 1,nf
+  do j = 1,nf
+  if(i.ne.j) then
+    dis2 = dis2 + (pdf1(+i)*pdf2(-i)*jff3(+j)*jff4(-j) &
+                  +pdf1(+i)*pdf2(-i)*jff3(-j)*jff4(+j) &
+                  +pdf1(-i)*pdf2(+i)*jff3(+j)*jff4(-j) &
+                  +pdf1(-i)*pdf2(+i)*jff3(-j)*jff4(+j))
+  endif
+  enddo
+  enddo
+  sig2 = as*as * 4d0/9d0 * (mant**2 + manu**2)/mans**2
+
+  ! q(qb) + q(qb) -> q(qb) + q(qb) : t- and u-channel
+  dis3 = 0d0
+  do i = 1,nf
+    dis3 = dis3 + (pdf1(+i)*pdf2(+i)*jff3(+i)*jff4(+i) &
+                  +pdf1(-i)*pdf2(-i)*jff3(-i)*jff4(-i))
+  enddo
+  sig3 = as*as * 4d0/9d0 * ((mans**2+manu**2)/mant**2 &
+                           +(mans**2+mant**2)/manu**2 &
+                           -2d0/3d0*mans**2/manu/mant)
+
+  ! q(qb) + qb(q) -> q(qb) + qb(q) : t- and s-channel
+  dis4t = 0d0
+  do i = 1,nf
+    dis4t = dis4t + (pdf1(+i)*pdf2(-i)*jff3(+i)*jff4(-i) &
+                    +pdf1(-i)*pdf2(+i)*jff3(-i)*jff4(+i))
+  enddo
+  sig4t =  as*as * 4d0/9d0 * ((mans**2+manu**2)/mant**2 &
+                             +(mant**2+manu**2)/mans**2 &
+                             -2d0/3d0*manu**2/mans/mant)
+
+  ! q(qb) + qb(q) -> qb(q) + q(qb) : u- and s-channel
+  dis4u = 0d0
+  do i = 1,nf
+    dis4u = dis4u + (pdf1(+i)*pdf2(-i)*jff3(-i)*jff4(+i) &
+                    +pdf1(-i)*pdf2(+i)*jff3(+i)*jff4(-i))
+  enddo
+  sig4u =  as*as * 4d0/9d0 * ((mans**2+mant**2)/manu**2 &
+                             +(mant**2+manu**2)/mans**2 &
+                             -2d0/3d0*mant**2/mans/manu)
+
+  ! q(qb) + qb(q) -> g + g : scatter(t-,u-channel) + annihlate(s-channel)
+  dis5 = 0d0
+  do i = 1,nf
+    dis5 = dis5 + (pdf1(+i)*pdf2(-i)*jff3(0)*jff4(0) &
+                  +pdf1(-i)*pdf2(+i)*jff3(0)*jff4(0))
+  enddo
+  sig5 = as*as * (32d0/27d0 * (mant**2+manu**2)/mant/manu &
+                 -8d0 / 3d0 * (mant**2+manu**2)/mans**2)
+
+  ! g + g -> q(qb) + qb(q) : scatter(t-,u-channel) + creation(s-channel)
+  dis6 = 0d0
+  do j=1,nf
+    dis6 = dis6 + (pdf1(0)*pdf2(0)*jff3(+j)*jff4(-j) &
+                  +pdf1(0)*pdf2(0)*jff3(-j)*jff4(+j))
+  enddo
+  sig6 = as*as * (1d0/6d0 * (mant**2+manu**2)/mant/manu &
+                 -3d0/8d0 * (mant**2+manu**2)/mans**2)
+
+  ! g + q(qb) -> g + q(qb) : triple gluon at t-channel
+  dis7tq = 0d0
+  do i=1,nf
+    dis7tq = dis7tq + (pdf1(0)*pdf2(+i)*jff3(0)*jff4(+i) &
+                      +pdf1(0)*pdf2(-i)*jff3(0)*jff4(-i))
+  enddo
+  sig7tq = as*as * ((manu**2+mans**2)/mant**2 - 4d0/9d0*(mans**2+manu**2)/mans/manu)
+  
+  ! q(qb) + g -> q(qb) + g : triple gluon at t-channel
+  dis7tg = 0d0
+  do i=1,nf
+    dis7tg = dis7tg + (pdf1(+i)*pdf2(0)*jff3(+i)*jff4(0) &
+                      +pdf1(-i)*pdf2(0)*jff3(-i)*jff4(0))
+  enddo
+  sig7tg = as*as * ((manu**2+mans**2)/mant**2 - 4d0/9d0*(mans**2+manu**2)/mans/manu)
+
+  ! g + q(qb) -> q(qb) + g : triple gluon at u-channel
+  dis7ug = 0d0
+  do i=1,nf
+    dis7ug = dis7ug + (pdf1(0)*pdf2(+i)*jff3(+i)*jff4(0) &
+                      +pdf1(0)*pdf2(-i)*jff3(-i)*jff4(0))
+  enddo
+  sig7ug = as*as * ((mant**2+mans**2)/manu**2 - 4d0/9d0*(mans**2+mant**2)/mans/mant)
+
+  ! q(qb) + g -> g + q(qb) : triple gluon at u-channel
+  dis7uq = 0d0
+  do i=1,nf
+    dis7uq = dis7uq + (pdf1(+i)*pdf2(0)*jff3(0)*jff4(+i) &
+                      +pdf1(-i)*pdf2(0)*jff3(0)*jff4(-i))
+  enddo
+  sig7uq = as*as * ((mant**2+mans**2)/manu**2 - 4d0/9d0*(mans**2+mant**2)/mans/mant)
+
+  ! g + g -> g + g :
+  dis8 = pdf1(0)*pdf2(0)*jff3(0)*jff4(0)
+  sig8 = as*as * 9d0/2d0*(3d0-mant*manu/mans**2-mans*manu/mant**2-mans*mant/manu**2)
+
+  fxn = fxn + dis5  * sig5 &
+            + dis7tq * sig7tq &
+            + dis7uq * sig7uq &
+            + dis8  * sig8
+
+  fxn = fxn * twoPI * ptTrig * x1*x2 / mans**2
+  fxn = fxn / (yAmax-yAmin) * gev2barn / nano
+
+  tempfunc = tempfunc + fxn
+
+  fxn = tempfunc
 
   accevent = accevent + 1
   return
+
+contains
+
+  pure function ampA(s,t,u) result(res)
+  real(wp), intent(in) :: s,t,u
+  real(wp) :: res
+  res = 4d0/9d0 * (s*s + t*t)/u/u
+  return
+  end function ampA
 
 end function fxn

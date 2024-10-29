@@ -113,22 +113,22 @@ CMAKE_OBJCOPY:FILEPATH=/usr/bin/objcopy
 CMAKE_OBJDUMP:FILEPATH=/usr/bin/objdump
 
 //Value Computed by CMake
-CMAKE_PROJECT_DESCRIPTION:STATIC=
+CMAKE_PROJECT_DESCRIPTION:STATIC=decoherent jet quenching
 
 //Value Computed by CMake
 CMAKE_PROJECT_HOMEPAGE_URL:STATIC=
 
 //Value Computed by CMake
-CMAKE_PROJECT_NAME:STATIC=eloss
+CMAKE_PROJECT_NAME:STATIC=decohJQ
 
 //Value Computed by CMake
-CMAKE_PROJECT_VERSION:STATIC=0.1
+CMAKE_PROJECT_VERSION:STATIC=0.5
 
 //Value Computed by CMake
 CMAKE_PROJECT_VERSION_MAJOR:STATIC=0
 
 //Value Computed by CMake
-CMAKE_PROJECT_VERSION_MINOR:STATIC=1
+CMAKE_PROJECT_VERSION_MINOR:STATIC=5
 
 //Value Computed by CMake
 CMAKE_PROJECT_VERSION_PATCH:STATIC=
@@ -199,13 +199,13 @@ CMAKE_STRIP:FILEPATH=/usr/bin/strip
 CMAKE_VERBOSE_MAKEFILE:BOOL=FALSE
 
 //Value Computed by CMake
-eloss_BINARY_DIR:STATIC=/home/raymondchen/Decoh-JQ/build
+decohJQ_BINARY_DIR:STATIC=/home/raymondchen/Decoh-JQ/build
 
 //Value Computed by CMake
-eloss_IS_TOP_LEVEL:STATIC=ON
+decohJQ_IS_TOP_LEVEL:STATIC=ON
 
 //Value Computed by CMake
-eloss_SOURCE_DIR:STATIC=/home/raymondchen/Decoh-JQ
+decohJQ_SOURCE_DIR:STATIC=/home/raymondchen/Decoh-JQ
 
 
 ########################
