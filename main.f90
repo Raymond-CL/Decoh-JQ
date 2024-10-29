@@ -136,11 +136,8 @@ program main
   integer :: id,nd
 
   call time_start
-
   call readinput
-
   call setCT18(pdfgrid)
-
   call setqcd(5,1)
 
   ! linear scale
@@ -151,7 +148,6 @@ program main
   ! nd = 100
   ! dmin = 1d-3;  dmax = 1d0
   ! bin = log(dmax/dmin)/nd
-
   do id = 1,nd
     ! linear scale
     dL = dmin + (id-1)*bin
@@ -171,7 +167,7 @@ program main
     accevent = 0;  totevent = 0
     call vegas(limits(1:2*ndimn),fxn,initial,npt2,itn2,prnt,intres,stddev,chisq)
     eff = dble(accevent)/dble(totevent)*100d0
-    write(*,'(5(es11.3),f10.2)') dL,dM,dR,intres/bin,stddev,eff
+    write(*,'(3(f8.2),2(es15.3),f8.2)') dL,dM,dR,intres/bin,stddev,eff
     !write(*,'(a,2(es15.4),a)') 'vegas result:',intres,stddev/intres,new_line('a')
   enddo
 
@@ -186,6 +182,7 @@ function fxn(dx,wgt)
   use phyconst
   use eventcounter
   use kinematics
+  use optflags
   use qcd, only: alphas,nf
   implicit none
   double precision, dimension(:), intent(in) :: dx
@@ -200,6 +197,7 @@ function fxn(dx,wgt)
   !double precision :: dis1,dis2,dis3,dis4,dis5,dis6,dis7,dis8
   !double precision :: sig1,sig2,sig3,sig4,sig5,sig6,sig7,sig8
   real(wp) :: tempfunc
+  real(wp) :: elossQ,elossG
   interface
     function CT18Pdf(iparton,x,Q)
       implicit double precision (a-h,o-z)
@@ -216,20 +214,26 @@ function fxn(dx,wgt)
   yAsso = dx(2)
   pTjet = dx(3)
 
-  pT = pTjet
-  pTq = pTjet
-  pTg = pTjet
+  elossQ = 0d0
+  elossG = 0d0
+  if(quench_opt.eq.1) then
+    elossQ = 20d0
+    elossG = 30d0
+  endif
 
-  x1 = pT / CME * (exp(+yTrig) + exp(+yAsso))
-  x2 = pT / CME * (exp(-yTrig) + exp(-yAsso))
+  ! quark jet part
+  pTq = pTjet + elossQ
+
+  x1 = pTq / CME * (exp(+yTrig) + exp(+yAsso))
+  x2 = pTq / CME * (exp(-yTrig) + exp(-yAsso))
   if(x1.le.0d0 .or. x1.gt.1d0) return
   if(x2.le.0d0 .or. x2.gt.1d0) return
 
   mans = +x1*x2*CME*CME
-  mant = -x1*CME*pT*exp(-yTrig)
-  manu = -x2*CME*pT*exp(+yTrig)
+  mant = -x1*CME*pTq*exp(-yTrig)
+  manu = -x2*CME*pTq*exp(+yTrig)
 
-  mufac = pT
+  mufac = pTq
   muren = mufac
   !as = CT18Alphas(muren)
   as = alphas(muren)
@@ -395,27 +399,24 @@ function fxn(dx,wgt)
             + dis7ug * sig7ug !&
 !           + dis8  * sig8
 
-  fxn = fxn * twoPI * ptTrig * x1*x2 / mans**2
+  fxn = fxn * twoPI * ptq * x1*x2 / mans**2
   fxn = fxn / (yAmax-yAmin) * gev2barn / nano
 
   tempfunc = fxn
 
-  ! separating quark and gluon contributions
+  ! gluon jet part
+  ptg = pTjet + elossG
 
-  ! assume jet(3) is gluon
-
-  ptTrig = ptAsso !+ 50d0
-
-  x1 = ptTrig / CME * (exp(+yTrig) + exp(+yAsso))
-  x2 = ptTrig / CME * (exp(-yTrig) + exp(-yAsso))
+  x1 = ptg / CME * (exp(+yTrig) + exp(+yAsso))
+  x2 = ptg / CME * (exp(-yTrig) + exp(-yAsso))
   if(x1.le.0d0 .or. x1.gt.1d0) return
   if(x2.le.0d0 .or. x2.gt.1d0) return
 
   mans = +x1*x2*CME*CME
-  mant = -x1*CME*ptTrig*exp(-yTrig) 
-  manu = -x2*CME*ptTrig*exp(+yTrig)
+  mant = -x1*CME*ptg*exp(-yTrig) 
+  manu = -x2*CME*ptg*exp(+yTrig)
 
-  mufac = ptTrig !/ 2d0 ! scale sensitivity multiplier
+  mufac = ptg !/ 2d0 ! scale sensitivity multiplier
   muren = mufac
   as = alphas(muren)
 
@@ -563,7 +564,7 @@ function fxn(dx,wgt)
             + dis7uq * sig7uq &
             + dis8  * sig8
 
-  fxn = fxn * twoPI * ptTrig * x1*x2 / mans**2
+  fxn = fxn * twoPI * ptg * x1*x2 / mans**2
   fxn = fxn / (yAmax-yAmin) * gev2barn / nano
 
   tempfunc = tempfunc + fxn
