@@ -2,29 +2,28 @@ module qcd
 
   use, intrinsic :: iso_fortran_env, only : wp => real64
   implicit none
-  public
+  private
   real(wp), parameter :: PI = 4d0*atan(1d0)
   real(wp), parameter :: PI2 = PI*PI
   real(wp), parameter :: PI3 = PI*PI*PI
-  integer, parameter :: Nc = 3
-  real(wp), parameter :: Ca = dble(Nc)
-  real(wp), parameter :: Cf = (dble(Nc)**2-1d0)/2d0/dble(Nc)
-  real(wp), parameter :: Tr = 1d0/2d0
-  real(wp), parameter :: AsmZ = 0.1181d0
+  integer, parameter, public :: Nc = 3
+  real(wp), parameter, public :: Ca = dble(Nc)
+  real(wp), parameter, public :: Cf = (dble(Nc)**2-1d0)/2d0/dble(Nc)
+  real(wp), parameter, public :: Tr = 1d0/2d0
+  real(wp), parameter, public :: AsmZ = 0.1181d0
   integer, public :: Nf,qcdloop
   real(wp), protected :: b0,b1,b2
   real(wp), public :: Lqcd,Lqcd2
 
 contains
 
-  subroutine setqcd(x,y)
-  integer, intent(in) :: x,y
-  Nf = x
-  qcdloop = y
+  subroutine setqcd(n,l)
+  integer, intent(in) :: n,l
+  Nf = n
+  qcdloop = l
   b0 = (33d0-2d0*dble(Nf))/(12d0*PI)
   b1 = (153d0-19d0*dble(Nf))/(24d0*PI2)
-  b2 = (2857d0-5033d0/9d0*dble(Nf)+325d0/27d0*dble(Nf)**2) &
-     /(128d0*PI3)
+  b2 = (2857d0-5033d0/9d0*dble(Nf)+325d0/27d0*dble(Nf)**2)/(128d0*PI3)
   Lqcd = 0d0
   if(qcdloop .eq. 1) then
     if(Nf.eq.3) Lqcd = 0.247d0
@@ -58,7 +57,7 @@ contains
     as = as - b1*l/(b0**2*t)
   endif
   if(qcdloop.ge.3) then
-    as = as +(b1**2*(l**2-l-1d0)+b0*b2)/(b0**4*t**2)
+    as = as + (b1**2*(l**2-l-1d0)+b0*b2)/(b0**4*t**2)
   endif
   return
   end function alphas

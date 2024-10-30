@@ -82,9 +82,35 @@ CMakeFiles/eloss.dir/src/CT18Pdf.f.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling Fortran source to assembly CMakeFiles/eloss.dir/src/CT18Pdf.f.s"
 	/usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -S /home/raymondchen/Decoh-JQ/src/CT18Pdf.f -o CMakeFiles/eloss.dir/src/CT18Pdf.f.s
 
+CMakeFiles/eloss.dir/src/const.f90.o: CMakeFiles/eloss.dir/flags.make
+CMakeFiles/eloss.dir/src/const.f90.o: ../src/const.f90
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/raymondchen/Decoh-JQ/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building Fortran object CMakeFiles/eloss.dir/src/const.f90.o"
+	/usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /home/raymondchen/Decoh-JQ/src/const.f90 -o CMakeFiles/eloss.dir/src/const.f90.o
+
+CMakeFiles/eloss.dir/src/const.f90.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing Fortran source to CMakeFiles/eloss.dir/src/const.f90.i"
+	/usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -E /home/raymondchen/Decoh-JQ/src/const.f90 > CMakeFiles/eloss.dir/src/const.f90.i
+
+CMakeFiles/eloss.dir/src/const.f90.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling Fortran source to assembly CMakeFiles/eloss.dir/src/const.f90.s"
+	/usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -S /home/raymondchen/Decoh-JQ/src/const.f90 -o CMakeFiles/eloss.dir/src/const.f90.s
+
+CMakeFiles/eloss.dir/src/kinematics.f90.o: CMakeFiles/eloss.dir/flags.make
+CMakeFiles/eloss.dir/src/kinematics.f90.o: ../src/kinematics.f90
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/raymondchen/Decoh-JQ/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building Fortran object CMakeFiles/eloss.dir/src/kinematics.f90.o"
+	/usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /home/raymondchen/Decoh-JQ/src/kinematics.f90 -o CMakeFiles/eloss.dir/src/kinematics.f90.o
+
+CMakeFiles/eloss.dir/src/kinematics.f90.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing Fortran source to CMakeFiles/eloss.dir/src/kinematics.f90.i"
+	/usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -E /home/raymondchen/Decoh-JQ/src/kinematics.f90 > CMakeFiles/eloss.dir/src/kinematics.f90.i
+
+CMakeFiles/eloss.dir/src/kinematics.f90.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling Fortran source to assembly CMakeFiles/eloss.dir/src/kinematics.f90.s"
+	/usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -S /home/raymondchen/Decoh-JQ/src/kinematics.f90 -o CMakeFiles/eloss.dir/src/kinematics.f90.s
+
 CMakeFiles/eloss.dir/src/qcd.f90.o: CMakeFiles/eloss.dir/flags.make
 CMakeFiles/eloss.dir/src/qcd.f90.o: ../src/qcd.f90
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/raymondchen/Decoh-JQ/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building Fortran object CMakeFiles/eloss.dir/src/qcd.f90.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/raymondchen/Decoh-JQ/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building Fortran object CMakeFiles/eloss.dir/src/qcd.f90.o"
 	/usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /home/raymondchen/Decoh-JQ/src/qcd.f90 -o CMakeFiles/eloss.dir/src/qcd.f90.o
 
 CMakeFiles/eloss.dir/src/qcd.f90.i: cmake_force
@@ -97,7 +123,7 @@ CMakeFiles/eloss.dir/src/qcd.f90.s: cmake_force
 
 CMakeFiles/eloss.dir/src/time.f90.o: CMakeFiles/eloss.dir/flags.make
 CMakeFiles/eloss.dir/src/time.f90.o: ../src/time.f90
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/raymondchen/Decoh-JQ/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building Fortran object CMakeFiles/eloss.dir/src/time.f90.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/raymondchen/Decoh-JQ/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building Fortran object CMakeFiles/eloss.dir/src/time.f90.o"
 	/usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /home/raymondchen/Decoh-JQ/src/time.f90 -o CMakeFiles/eloss.dir/src/time.f90.o
 
 CMakeFiles/eloss.dir/src/time.f90.i: cmake_force
@@ -110,7 +136,7 @@ CMakeFiles/eloss.dir/src/time.f90.s: cmake_force
 
 CMakeFiles/eloss.dir/src/vint.f90.o: CMakeFiles/eloss.dir/flags.make
 CMakeFiles/eloss.dir/src/vint.f90.o: ../src/vint.f90
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/raymondchen/Decoh-JQ/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building Fortran object CMakeFiles/eloss.dir/src/vint.f90.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/raymondchen/Decoh-JQ/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building Fortran object CMakeFiles/eloss.dir/src/vint.f90.o"
 	/usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /home/raymondchen/Decoh-JQ/src/vint.f90 -o CMakeFiles/eloss.dir/src/vint.f90.o
 
 CMakeFiles/eloss.dir/src/vint.f90.i: cmake_force
@@ -123,7 +149,7 @@ CMakeFiles/eloss.dir/src/vint.f90.s: cmake_force
 
 CMakeFiles/eloss.dir/main.f90.o: CMakeFiles/eloss.dir/flags.make
 CMakeFiles/eloss.dir/main.f90.o: ../main.f90
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/raymondchen/Decoh-JQ/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building Fortran object CMakeFiles/eloss.dir/main.f90.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/raymondchen/Decoh-JQ/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building Fortran object CMakeFiles/eloss.dir/main.f90.o"
 	/usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /home/raymondchen/Decoh-JQ/main.f90 -o CMakeFiles/eloss.dir/main.f90.o
 
 CMakeFiles/eloss.dir/main.f90.i: cmake_force
@@ -137,6 +163,8 @@ CMakeFiles/eloss.dir/main.f90.s: cmake_force
 # Object files for target eloss
 eloss_OBJECTS = \
 "CMakeFiles/eloss.dir/src/CT18Pdf.f.o" \
+"CMakeFiles/eloss.dir/src/const.f90.o" \
+"CMakeFiles/eloss.dir/src/kinematics.f90.o" \
 "CMakeFiles/eloss.dir/src/qcd.f90.o" \
 "CMakeFiles/eloss.dir/src/time.f90.o" \
 "CMakeFiles/eloss.dir/src/vint.f90.o" \
@@ -146,13 +174,15 @@ eloss_OBJECTS = \
 eloss_EXTERNAL_OBJECTS =
 
 eloss: CMakeFiles/eloss.dir/src/CT18Pdf.f.o
+eloss: CMakeFiles/eloss.dir/src/const.f90.o
+eloss: CMakeFiles/eloss.dir/src/kinematics.f90.o
 eloss: CMakeFiles/eloss.dir/src/qcd.f90.o
 eloss: CMakeFiles/eloss.dir/src/time.f90.o
 eloss: CMakeFiles/eloss.dir/src/vint.f90.o
 eloss: CMakeFiles/eloss.dir/main.f90.o
 eloss: CMakeFiles/eloss.dir/build.make
 eloss: CMakeFiles/eloss.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/raymondchen/Decoh-JQ/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Linking Fortran executable eloss"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/raymondchen/Decoh-JQ/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Linking Fortran executable eloss"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/eloss.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.

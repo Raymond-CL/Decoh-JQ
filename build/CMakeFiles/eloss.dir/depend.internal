@@ -5,6 +5,10 @@ CMakeFiles/eloss.dir/main.f90.o
  /home/raymondchen/Decoh-JQ/main.f90
 CMakeFiles/eloss.dir/src/CT18Pdf.f.o
  /home/raymondchen/Decoh-JQ/src/CT18Pdf.f
+CMakeFiles/eloss.dir/src/const.f90.o
+ /home/raymondchen/Decoh-JQ/src/const.f90
+CMakeFiles/eloss.dir/src/kinematics.f90.o
+ /home/raymondchen/Decoh-JQ/src/kinematics.f90
 CMakeFiles/eloss.dir/src/qcd.f90.o
  /home/raymondchen/Decoh-JQ/src/qcd.f90
 CMakeFiles/eloss.dir/src/time.f90.o

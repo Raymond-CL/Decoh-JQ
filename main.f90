@@ -1,73 +1,21 @@
-module const
-  use, intrinsic :: iso_fortran_env, only : wp => real64
-  implicit none
-  real(wp), parameter :: PI = 4d0*atan(1d0)
-  real(wp), parameter :: twoPI = 2d0*PI
-  real(wp), parameter :: PI2 = PI*PI
-end module const
-
-
-
-module phyconst
-  use, intrinsic :: iso_fortran_env, only : wp => real64
-  use const
-  implicit none
-  ! conversion units
-  real(wp), parameter :: planck = 6.62607015d-34   ! Planck constant (J.s)
-  real(wp), parameter :: planckbar = planck/twoPI  ! reduced Planck (J.s)
-  real(wp), parameter :: charge = 1.602176634d-19  ! chrg mag (J/eV)
-  real(wp), parameter :: hbar = planckbar/charge   ! hbar (eV.s)
-  real(wp), parameter :: light = 299792458d0      ! light speed (m/s)
-  real(wp), parameter :: hbarc = hbar*light      ! conversion unit (eV.m)
-  real(wp), parameter :: giga = 1d+9
-  real(wp), parameter :: mili = 1d-3
-  real(wp), parameter :: micro = 1d-6
-  real(wp), parameter :: nano = 1d-9
-  real(wp), parameter :: pico = 1d-12
-  real(wp), parameter :: femto = 1d-15
-  real(wp), parameter :: fm2barn = 1d-2         ! fm^2->barns (barn/fm^2)
-  real(wp), parameter :: gevfm = hbarc/giga/femto  ! common conversion (GeV.fm)
-  real(wp), parameter :: gev2barn = gevfm*gevfm*fm2barn ! (GeV^2.barn)
-end module phyconst
-
-
-
 module optflags
   implicit none
   ! options and flags
+  public
   integer :: quench_opt
 end module optflags
 
 
 
 module eventcounter
-  use, intrinsic :: iso_fortran_env, only : wp => real64
+  use, intrinsic :: iso_fortran_env, only : wp => real32
   use, intrinsic :: iso_fortran_env, only : ip => int64
   implicit none
-  integer(ip) :: accevent,totevent
+  private :: wp,ip
+  public
   real(wp) :: eff
+  integer(ip) :: accevent,totevent
 end module eventcounter
-
-
-
-module kinematics
-  use, intrinsic :: iso_fortran_env, only : wp => real64
-  implicit none
-  real(wp) :: CME
-  real(wp) :: ptTmin,ptTmax
-  real(wp) :: yTmin ,yTmax
-  real(wp) :: ptAmin,ptAmax
-  real(wp) :: yAmin ,yAmax
-  real(wp) :: ptTrig,ptAsso
-  real(wp) :: yTrig,yAsso
-  real(wp) :: pT,pTjet,pTq,pTg
-  real(wp) :: x1,x2
-  real(wp) :: x,y,th
-  real(wp) :: mans,mant,manu
-  real(wp) :: mufac,muren
-  real(wp) :: as
-  logical :: fillnow
-end module kinematics
 
 
 
@@ -106,7 +54,7 @@ subroutine readinput
   read(u,*) npt1,itn1
   read(u,*) npt2,itn2
   close(u)
-
+  ! define some options and flags
   quench_opt = 0
   ! 0: no quenching (pp)
   ! 1: constant Delta-E
@@ -116,7 +64,7 @@ subroutine readinput
   if(quench_opt.eq.1)  ndimn = 3
   if(quench_opt.eq.2)  ndimn = 4
   if(quench_opt.eq.3)  ndimn = 7
-
+  ! some fixed variable values need to be set
   prnt = -1
 end subroutine readinput
 
@@ -166,7 +114,7 @@ program main
     initial = +1
     accevent = 0;  totevent = 0
     call vegas(limits(1:2*ndimn),fxn,initial,npt2,itn2,prnt,intres,stddev,chisq)
-    eff = dble(accevent)/dble(totevent)*100d0
+    eff = real(accevent)/real(totevent)*100d0
     write(*,'(3(f8.2),2(es15.3),f8.2)') dL,dM,dR,intres/bin,stddev,eff
     !write(*,'(a,2(es15.4),a)') 'vegas result:',intres,stddev/intres,new_line('a')
   enddo

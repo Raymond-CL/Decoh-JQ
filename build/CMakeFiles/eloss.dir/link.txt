@@ -1,1 +1,1 @@
-/usr/bin/f95  -std=legacy -fno-strict-overflow CMakeFiles/eloss.dir/src/CT18Pdf.f.o CMakeFiles/eloss.dir/src/qcd.f90.o CMakeFiles/eloss.dir/src/time.f90.o CMakeFiles/eloss.dir/src/vint.f90.o CMakeFiles/eloss.dir/main.f90.o -o eloss 
+/usr/bin/f95  -std=legacy -fno-strict-overflow CMakeFiles/eloss.dir/src/CT18Pdf.f.o CMakeFiles/eloss.dir/src/const.f90.o CMakeFiles/eloss.dir/src/kinematics.f90.o CMakeFiles/eloss.dir/src/qcd.f90.o CMakeFiles/eloss.dir/src/time.f90.o CMakeFiles/eloss.dir/src/vint.f90.o CMakeFiles/eloss.dir/main.f90.o -o eloss 

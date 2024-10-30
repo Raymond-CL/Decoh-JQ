@@ -10,6 +10,8 @@ set(CMAKE_DEPENDS_LANGUAGES
 set(CMAKE_DEPENDS_CHECK_Fortran
   "/home/raymondchen/Decoh-JQ/main.f90" "/home/raymondchen/Decoh-JQ/build/CMakeFiles/eloss.dir/main.f90.o"
   "/home/raymondchen/Decoh-JQ/src/CT18Pdf.f" "/home/raymondchen/Decoh-JQ/build/CMakeFiles/eloss.dir/src/CT18Pdf.f.o"
+  "/home/raymondchen/Decoh-JQ/src/const.f90" "/home/raymondchen/Decoh-JQ/build/CMakeFiles/eloss.dir/src/const.f90.o"
+  "/home/raymondchen/Decoh-JQ/src/kinematics.f90" "/home/raymondchen/Decoh-JQ/build/CMakeFiles/eloss.dir/src/kinematics.f90.o"
   "/home/raymondchen/Decoh-JQ/src/qcd.f90" "/home/raymondchen/Decoh-JQ/build/CMakeFiles/eloss.dir/src/qcd.f90.o"
   "/home/raymondchen/Decoh-JQ/src/time.f90" "/home/raymondchen/Decoh-JQ/build/CMakeFiles/eloss.dir/src/time.f90.o"
   "/home/raymondchen/Decoh-JQ/src/vint.f90" "/home/raymondchen/Decoh-JQ/build/CMakeFiles/eloss.dir/src/vint.f90.o"

@@ -177,6 +177,54 @@ src/CT18Pdf.f.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/eloss.dir/build.make CMakeFiles/eloss.dir/src/CT18Pdf.f.s
 .PHONY : src/CT18Pdf.f.s
 
+src/const.o: src/const.f90.o
+.PHONY : src/const.o
+
+# target to build an object file
+src/const.f90.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/eloss.dir/build.make CMakeFiles/eloss.dir/src/const.f90.o
+.PHONY : src/const.f90.o
+
+src/const.i: src/const.f90.i
+.PHONY : src/const.i
+
+# target to preprocess a source file
+src/const.f90.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/eloss.dir/build.make CMakeFiles/eloss.dir/src/const.f90.i
+.PHONY : src/const.f90.i
+
+src/const.s: src/const.f90.s
+.PHONY : src/const.s
+
+# target to generate assembly for a file
+src/const.f90.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/eloss.dir/build.make CMakeFiles/eloss.dir/src/const.f90.s
+.PHONY : src/const.f90.s
+
+src/kinematics.o: src/kinematics.f90.o
+.PHONY : src/kinematics.o
+
+# target to build an object file
+src/kinematics.f90.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/eloss.dir/build.make CMakeFiles/eloss.dir/src/kinematics.f90.o
+.PHONY : src/kinematics.f90.o
+
+src/kinematics.i: src/kinematics.f90.i
+.PHONY : src/kinematics.i
+
+# target to preprocess a source file
+src/kinematics.f90.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/eloss.dir/build.make CMakeFiles/eloss.dir/src/kinematics.f90.i
+.PHONY : src/kinematics.f90.i
+
+src/kinematics.s: src/kinematics.f90.s
+.PHONY : src/kinematics.s
+
+# target to generate assembly for a file
+src/kinematics.f90.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/eloss.dir/build.make CMakeFiles/eloss.dir/src/kinematics.f90.s
+.PHONY : src/kinematics.f90.s
+
 src/qcd.o: src/qcd.f90.o
 .PHONY : src/qcd.o
 
@@ -264,6 +312,12 @@ help:
 	@echo "... src/CT18Pdf.o"
 	@echo "... src/CT18Pdf.i"
 	@echo "... src/CT18Pdf.s"
+	@echo "... src/const.o"
+	@echo "... src/const.i"
+	@echo "... src/const.s"
+	@echo "... src/kinematics.o"
+	@echo "... src/kinematics.i"
+	@echo "... src/kinematics.s"
 	@echo "... src/qcd.o"
 	@echo "... src/qcd.i"
 	@echo "... src/qcd.s"
