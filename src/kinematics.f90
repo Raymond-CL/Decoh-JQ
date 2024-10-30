@@ -1,4 +1,5 @@
 module kinematics
+
   use const
   implicit none
   public
@@ -19,18 +20,32 @@ module kinematics
 
 contains
 
-  pure function ampA(s,t,u) result(res)
-  real(wp), intent(in) :: s,t,u
+  pure function ampA(n1,n2,d) result(res)
+  real(wp), intent(in) :: n1,n2,d
   real(wp) :: res
-  res = 4d0/9d0 * (s*s + t*t)/u/u
+  res = 4d0/9d0*(n1*n1+n2*n2)/d/d
   return
   end function ampA
 
-  pure function ampB(s,t,u) result(res)
-  real(wp), intent(in) :: s,t,u
+  pure function ampB(n,d1,d2) result(res)
+  real(wp), intent(in) :: n,d1,d2
   real(wp) :: res
-  res = 4d0/9d0 * (s*s + t*t)/u/u
+  res = ampA(n,d1,d2) + ampA(n,d2,d1) - 8d0/27d0*n*n/d1/d2
   return
   end function ampB
+
+  pure function ampC(n1,n2,d) result(res)
+  real(wp), intent(in) :: n1,n2,d
+  real(wp) :: res
+  res = 16d0/81d0*(n1*n1+n2*n2)/n1/n2 - ampA(n1,n2,d)
+  return
+  end function ampC
+
+  pure function ampD(n1,n2,n3) result(res)
+  real(wp), intent(in) :: n1,n2,n3
+  real(wp) :: res
+  res = 3d0-n1*n2/n3**2-n1*n3/n2**2-n2*n3/n1**2
+  return
+  end function ampD
 
 end module kinematics
