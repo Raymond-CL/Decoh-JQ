@@ -1,8 +1,12 @@
 module const
-  use, intrinsic :: iso_fortran_env, only : wp => real64
+  use, intrinsic :: iso_fortran_env, only : sp => real32
+  use, intrinsic :: iso_fortran_env, only : dp => real64
+  use, intrinsic :: iso_fortran_env, only : ip => int64
+  use, intrinsic :: iso_fortran_env, only : stdin => input_unit
+  use, intrinsic :: iso_fortran_env, only : stdout => output_unit
   implicit none
-  private :: wp
   public
+  integer, parameter :: wp = dp     ! working precision
   real(wp), parameter :: PI = 4d0*atan(1d0)
   real(wp), parameter :: twoPI = 2d0*PI
   real(wp), parameter :: PI2 = PI*PI
@@ -11,10 +15,8 @@ end module const
 
 
 module phyconst
-  use, intrinsic :: iso_fortran_env, only : wp => real64
   use const
   implicit none
-  private :: wp
   ! conversion units
   public
   real(wp), parameter :: planck = 6.62607015d-34   ! Planck constant (J.s)

@@ -26,6 +26,7 @@ CMakeFiles/eloss.dir/phyconst.mod.stamp: CMakeFiles/eloss.dir/src/const.f90.o
 CMakeFiles/eloss.dir/src/const.f90.o.provides.build:
 	$(CMAKE_COMMAND) -E touch CMakeFiles/eloss.dir/src/const.f90.o.provides.build
 CMakeFiles/eloss.dir/build: CMakeFiles/eloss.dir/src/const.f90.o.provides.build
+CMakeFiles/eloss.dir/src/kinematics.f90.o: CMakeFiles/eloss.dir/const.mod.stamp
 CMakeFiles/eloss.dir/src/kinematics.f90.o.provides.build: CMakeFiles/eloss.dir/kinematics.mod.stamp
 CMakeFiles/eloss.dir/kinematics.mod.stamp: CMakeFiles/eloss.dir/src/kinematics.f90.o
 	$(CMAKE_COMMAND) -E cmake_copy_f90_mod kinematics.mod CMakeFiles/eloss.dir/kinematics.mod.stamp GNU

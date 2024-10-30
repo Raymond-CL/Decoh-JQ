@@ -1,20 +1,16 @@
 module optflags
   implicit none
   ! options and flags
-  public
-  integer :: quench_opt
+  integer, public :: quench_opt
 end module optflags
 
 
 
 module eventcounter
-  use, intrinsic :: iso_fortran_env, only : wp => real64
-  use, intrinsic :: iso_fortran_env, only : ip => int64
+  use const
   implicit none
-  private :: wp,ip
-  public
-  real(wp) :: eff
-  integer(ip) :: accevent,totevent
+  real(wp), public :: eff
+  integer(ip), public :: accevent,totevent
 end module eventcounter
 
 
@@ -71,8 +67,6 @@ end subroutine readinput
 
 
 program main
-  use, intrinsic :: iso_fortran_env, only : stdout => output_unit
-  use, intrinsic :: iso_fortran_env, only : wp => real64
   use time
   use vint
   use eventcounter
@@ -127,8 +121,6 @@ end program main
 
 
 function fxn(dx,wgt)
-  use, intrinsic :: iso_fortran_env, only : wp => real64
-  use const
   use phyconst
   use eventcounter
   use kinematics
@@ -144,8 +136,6 @@ function fxn(dx,wgt)
   dis6,dis7tq,dis7tg,dis7uq,dis7ug,dis8!,dis7t,dis7u
   real(wp) :: sig1t,sig1u,sig2,sig3,sig4t,sig4u,sig5,&
   sig6,sig7tq,sig7tg,sig7uq,sig7ug,sig8!,sig7t,sig7u
-  !double precision :: dis1,dis2,dis3,dis4,dis5,dis6,dis7,dis8
-  !double precision :: sig1,sig2,sig3,sig4,sig5,sig6,sig7,sig8
   real(wp) :: tempfunc
   real(wp) :: elossQ,elossG
   interface
@@ -171,7 +161,7 @@ function fxn(dx,wgt)
     elossG = 30d0
   endif
 
-  ! quark jet part
+  ! quark jet differential cross-section
   pTq = pTjet + elossQ
 
   x1 = pTq / CME * (exp(+yTrig) + exp(+yAsso))
@@ -354,7 +344,7 @@ function fxn(dx,wgt)
 
   tempfunc = fxn
 
-  ! gluon jet part
+  ! gluon jet differential cross-section
   ptg = pTjet + elossG
 
   x1 = ptg / CME * (exp(+yTrig) + exp(+yAsso))
@@ -523,14 +513,5 @@ function fxn(dx,wgt)
 
   accevent = accevent + 1
   return
-
-contains
-
-  pure function ampA(s,t,u) result(res)
-  real(wp), intent(in) :: s,t,u
-  real(wp) :: res
-  res = 4d0/9d0 * (s*s + t*t)/u/u
-  return
-  end function ampA
 
 end function fxn

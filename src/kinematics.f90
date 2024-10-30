@@ -1,7 +1,6 @@
 module kinematics
-  use, intrinsic :: iso_fortran_env, only : wp => real64
+  use const
   implicit none
-  private :: wp
   public
   real(wp) :: CME
   real(wp) :: ptTmin,ptTmax
@@ -17,4 +16,21 @@ module kinematics
   real(wp) :: mufac,muren
   real(wp) :: as
   logical :: fillnow
+
+contains
+
+  pure function ampA(s,t,u) result(res)
+  real(wp), intent(in) :: s,t,u
+  real(wp) :: res
+  res = 4d0/9d0 * (s*s + t*t)/u/u
+  return
+  end function ampA
+
+  pure function ampB(s,t,u) result(res)
+  real(wp), intent(in) :: s,t,u
+  real(wp) :: res
+  res = 4d0/9d0 * (s*s + t*t)/u/u
+  return
+  end function ampB
+
 end module kinematics
