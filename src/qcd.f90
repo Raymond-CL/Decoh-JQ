@@ -14,6 +14,7 @@ module qcd
   integer, public :: Nf,qcdloop
   real(wp), protected :: b0,b1,b2
   real(wp), public :: Lqcd,Lqcd2
+  public :: setqcd,alphas,Pqq,Pgq,Pqg,Pgg
 
 contains
 

@@ -8,7 +8,7 @@ end module optflags
 
 
 module eventcounter
-  use, intrinsic :: iso_fortran_env, only : wp => real32
+  use, intrinsic :: iso_fortran_env, only : wp => real64
   use, intrinsic :: iso_fortran_env, only : ip => int64
   implicit none
   private :: wp,ip
@@ -72,6 +72,7 @@ end subroutine readinput
 
 program main
   use, intrinsic :: iso_fortran_env, only : stdout => output_unit
+  use, intrinsic :: iso_fortran_env, only : wp => real64
   use time
   use vint
   use eventcounter
@@ -114,7 +115,7 @@ program main
     initial = +1
     accevent = 0;  totevent = 0
     call vegas(limits(1:2*ndimn),fxn,initial,npt2,itn2,prnt,intres,stddev,chisq)
-    eff = real(accevent)/real(totevent)*100d0
+    eff = real(accevent,wp)/real(totevent,wp)*100d0
     write(*,'(3(f8.2),2(es15.3),f8.2)') dL,dM,dR,intres/bin,stddev,eff
     !write(*,'(a,2(es15.4),a)') 'vegas result:',intres,stddev/intres,new_line('a')
   enddo
@@ -126,6 +127,7 @@ end program main
 
 
 function fxn(dx,wgt)
+  use, intrinsic :: iso_fortran_env, only : wp => real64
   use const
   use phyconst
   use eventcounter

@@ -1,7 +1,8 @@
 module time
-  private
+  
   use, intrinsic :: iso_fortran_env, only: int32,real64,stdout=>output_unit
   implicit none
+  private
   real(real64) :: cpu_start,cpu_stop
   integer(int32) :: count_start,count_stop,count_rate
   real(real64) :: cputime,walltime
