@@ -63,7 +63,7 @@ CMAKE_BINARY_DIR = /home/raymondchen/Decoh-JQ/build
 # Directory level rules for the build root directory
 
 # The main recursive "all" target.
-all: CMakeFiles/eloss.dir/all
+all: CMakeFiles/eloss.exe.dir/all
 .PHONY : all
 
 # The main recursive "preinstall" target.
@@ -71,34 +71,34 @@ preinstall:
 .PHONY : preinstall
 
 # The main recursive "clean" target.
-clean: CMakeFiles/eloss.dir/clean
+clean: CMakeFiles/eloss.exe.dir/clean
 .PHONY : clean
 
 #=============================================================================
-# Target rules for target CMakeFiles/eloss.dir
+# Target rules for target CMakeFiles/eloss.exe.dir
 
 # All Build rule for target.
-CMakeFiles/eloss.dir/all:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/eloss.dir/build.make CMakeFiles/eloss.dir/depend
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/eloss.dir/build.make CMakeFiles/eloss.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/raymondchen/Decoh-JQ/build/CMakeFiles --progress-num=1,2,3,4,5,6,7,8 "Built target eloss"
-.PHONY : CMakeFiles/eloss.dir/all
+CMakeFiles/eloss.exe.dir/all:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/eloss.exe.dir/build.make CMakeFiles/eloss.exe.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/eloss.exe.dir/build.make CMakeFiles/eloss.exe.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/raymondchen/Decoh-JQ/build/CMakeFiles --progress-num=1,2,3,4,5,6,7,8 "Built target eloss.exe"
+.PHONY : CMakeFiles/eloss.exe.dir/all
 
 # Build rule for subdir invocation for target.
-CMakeFiles/eloss.dir/rule: cmake_check_build_system
+CMakeFiles/eloss.exe.dir/rule: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/raymondchen/Decoh-JQ/build/CMakeFiles 8
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/eloss.dir/all
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/eloss.exe.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/raymondchen/Decoh-JQ/build/CMakeFiles 0
-.PHONY : CMakeFiles/eloss.dir/rule
+.PHONY : CMakeFiles/eloss.exe.dir/rule
 
 # Convenience name for target.
-eloss: CMakeFiles/eloss.dir/rule
-.PHONY : eloss
+eloss.exe: CMakeFiles/eloss.exe.dir/rule
+.PHONY : eloss.exe
 
 # clean rule for target.
-CMakeFiles/eloss.dir/clean:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/eloss.dir/build.make CMakeFiles/eloss.dir/clean
-.PHONY : CMakeFiles/eloss.dir/clean
+CMakeFiles/eloss.exe.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/eloss.exe.dir/build.make CMakeFiles/eloss.exe.dir/clean
+.PHONY : CMakeFiles/eloss.exe.dir/clean
 
 #=============================================================================
 # Special targets to cleanup operation of make.

@@ -30,3 +30,9 @@
 *.exe
 *.out
 *.app
+
+# bash
+*.sh
+
+# data
+*.pds

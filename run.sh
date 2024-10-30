@@ -3,6 +3,6 @@ mkdir build
 cd build
 cmake ..
 make
-cp eloss ../
+cp eloss.exe ../
 cd ../
-./eloss
+./eloss.exe

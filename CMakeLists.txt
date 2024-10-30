@@ -19,4 +19,4 @@ set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${FVERSION} ${fflag}")
 
 file(GLOB_RECURSE sources src/*.f90 src/*.f)
 
-add_executable(eloss ${sources} main.f90)
+add_executable(eloss.exe ${sources} main.f90)

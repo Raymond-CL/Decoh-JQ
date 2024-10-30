@@ -117,24 +117,24 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named eloss
+# Target rules for targets named eloss.exe
 
 # Build rule for target.
-eloss: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 eloss
-.PHONY : eloss
+eloss.exe: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 eloss.exe
+.PHONY : eloss.exe
 
 # fast build rule for target.
-eloss/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/eloss.dir/build.make CMakeFiles/eloss.dir/build
-.PHONY : eloss/fast
+eloss.exe/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/eloss.exe.dir/build.make CMakeFiles/eloss.exe.dir/build
+.PHONY : eloss.exe/fast
 
 main.o: main.f90.o
 .PHONY : main.o
 
 # target to build an object file
 main.f90.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/eloss.dir/build.make CMakeFiles/eloss.dir/main.f90.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/eloss.exe.dir/build.make CMakeFiles/eloss.exe.dir/main.f90.o
 .PHONY : main.f90.o
 
 main.i: main.f90.i
@@ -142,7 +142,7 @@ main.i: main.f90.i
 
 # target to preprocess a source file
 main.f90.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/eloss.dir/build.make CMakeFiles/eloss.dir/main.f90.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/eloss.exe.dir/build.make CMakeFiles/eloss.exe.dir/main.f90.i
 .PHONY : main.f90.i
 
 main.s: main.f90.s
@@ -150,7 +150,7 @@ main.s: main.f90.s
 
 # target to generate assembly for a file
 main.f90.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/eloss.dir/build.make CMakeFiles/eloss.dir/main.f90.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/eloss.exe.dir/build.make CMakeFiles/eloss.exe.dir/main.f90.s
 .PHONY : main.f90.s
 
 src/CT18Pdf.o: src/CT18Pdf.f.o
@@ -158,7 +158,7 @@ src/CT18Pdf.o: src/CT18Pdf.f.o
 
 # target to build an object file
 src/CT18Pdf.f.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/eloss.dir/build.make CMakeFiles/eloss.dir/src/CT18Pdf.f.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/eloss.exe.dir/build.make CMakeFiles/eloss.exe.dir/src/CT18Pdf.f.o
 .PHONY : src/CT18Pdf.f.o
 
 src/CT18Pdf.i: src/CT18Pdf.f.i
@@ -166,7 +166,7 @@ src/CT18Pdf.i: src/CT18Pdf.f.i
 
 # target to preprocess a source file
 src/CT18Pdf.f.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/eloss.dir/build.make CMakeFiles/eloss.dir/src/CT18Pdf.f.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/eloss.exe.dir/build.make CMakeFiles/eloss.exe.dir/src/CT18Pdf.f.i
 .PHONY : src/CT18Pdf.f.i
 
 src/CT18Pdf.s: src/CT18Pdf.f.s
@@ -174,7 +174,7 @@ src/CT18Pdf.s: src/CT18Pdf.f.s
 
 # target to generate assembly for a file
 src/CT18Pdf.f.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/eloss.dir/build.make CMakeFiles/eloss.dir/src/CT18Pdf.f.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/eloss.exe.dir/build.make CMakeFiles/eloss.exe.dir/src/CT18Pdf.f.s
 .PHONY : src/CT18Pdf.f.s
 
 src/const.o: src/const.f90.o
@@ -182,7 +182,7 @@ src/const.o: src/const.f90.o
 
 # target to build an object file
 src/const.f90.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/eloss.dir/build.make CMakeFiles/eloss.dir/src/const.f90.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/eloss.exe.dir/build.make CMakeFiles/eloss.exe.dir/src/const.f90.o
 .PHONY : src/const.f90.o
 
 src/const.i: src/const.f90.i
@@ -190,7 +190,7 @@ src/const.i: src/const.f90.i
 
 # target to preprocess a source file
 src/const.f90.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/eloss.dir/build.make CMakeFiles/eloss.dir/src/const.f90.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/eloss.exe.dir/build.make CMakeFiles/eloss.exe.dir/src/const.f90.i
 .PHONY : src/const.f90.i
 
 src/const.s: src/const.f90.s
@@ -198,7 +198,7 @@ src/const.s: src/const.f90.s
 
 # target to generate assembly for a file
 src/const.f90.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/eloss.dir/build.make CMakeFiles/eloss.dir/src/const.f90.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/eloss.exe.dir/build.make CMakeFiles/eloss.exe.dir/src/const.f90.s
 .PHONY : src/const.f90.s
 
 src/kinematics.o: src/kinematics.f90.o
@@ -206,7 +206,7 @@ src/kinematics.o: src/kinematics.f90.o
 
 # target to build an object file
 src/kinematics.f90.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/eloss.dir/build.make CMakeFiles/eloss.dir/src/kinematics.f90.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/eloss.exe.dir/build.make CMakeFiles/eloss.exe.dir/src/kinematics.f90.o
 .PHONY : src/kinematics.f90.o
 
 src/kinematics.i: src/kinematics.f90.i
@@ -214,7 +214,7 @@ src/kinematics.i: src/kinematics.f90.i
 
 # target to preprocess a source file
 src/kinematics.f90.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/eloss.dir/build.make CMakeFiles/eloss.dir/src/kinematics.f90.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/eloss.exe.dir/build.make CMakeFiles/eloss.exe.dir/src/kinematics.f90.i
 .PHONY : src/kinematics.f90.i
 
 src/kinematics.s: src/kinematics.f90.s
@@ -222,7 +222,7 @@ src/kinematics.s: src/kinematics.f90.s
 
 # target to generate assembly for a file
 src/kinematics.f90.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/eloss.dir/build.make CMakeFiles/eloss.dir/src/kinematics.f90.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/eloss.exe.dir/build.make CMakeFiles/eloss.exe.dir/src/kinematics.f90.s
 .PHONY : src/kinematics.f90.s
 
 src/qcd.o: src/qcd.f90.o
@@ -230,7 +230,7 @@ src/qcd.o: src/qcd.f90.o
 
 # target to build an object file
 src/qcd.f90.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/eloss.dir/build.make CMakeFiles/eloss.dir/src/qcd.f90.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/eloss.exe.dir/build.make CMakeFiles/eloss.exe.dir/src/qcd.f90.o
 .PHONY : src/qcd.f90.o
 
 src/qcd.i: src/qcd.f90.i
@@ -238,7 +238,7 @@ src/qcd.i: src/qcd.f90.i
 
 # target to preprocess a source file
 src/qcd.f90.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/eloss.dir/build.make CMakeFiles/eloss.dir/src/qcd.f90.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/eloss.exe.dir/build.make CMakeFiles/eloss.exe.dir/src/qcd.f90.i
 .PHONY : src/qcd.f90.i
 
 src/qcd.s: src/qcd.f90.s
@@ -246,7 +246,7 @@ src/qcd.s: src/qcd.f90.s
 
 # target to generate assembly for a file
 src/qcd.f90.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/eloss.dir/build.make CMakeFiles/eloss.dir/src/qcd.f90.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/eloss.exe.dir/build.make CMakeFiles/eloss.exe.dir/src/qcd.f90.s
 .PHONY : src/qcd.f90.s
 
 src/time.o: src/time.f90.o
@@ -254,7 +254,7 @@ src/time.o: src/time.f90.o
 
 # target to build an object file
 src/time.f90.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/eloss.dir/build.make CMakeFiles/eloss.dir/src/time.f90.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/eloss.exe.dir/build.make CMakeFiles/eloss.exe.dir/src/time.f90.o
 .PHONY : src/time.f90.o
 
 src/time.i: src/time.f90.i
@@ -262,7 +262,7 @@ src/time.i: src/time.f90.i
 
 # target to preprocess a source file
 src/time.f90.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/eloss.dir/build.make CMakeFiles/eloss.dir/src/time.f90.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/eloss.exe.dir/build.make CMakeFiles/eloss.exe.dir/src/time.f90.i
 .PHONY : src/time.f90.i
 
 src/time.s: src/time.f90.s
@@ -270,7 +270,7 @@ src/time.s: src/time.f90.s
 
 # target to generate assembly for a file
 src/time.f90.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/eloss.dir/build.make CMakeFiles/eloss.dir/src/time.f90.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/eloss.exe.dir/build.make CMakeFiles/eloss.exe.dir/src/time.f90.s
 .PHONY : src/time.f90.s
 
 src/vint.o: src/vint.f90.o
@@ -278,7 +278,7 @@ src/vint.o: src/vint.f90.o
 
 # target to build an object file
 src/vint.f90.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/eloss.dir/build.make CMakeFiles/eloss.dir/src/vint.f90.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/eloss.exe.dir/build.make CMakeFiles/eloss.exe.dir/src/vint.f90.o
 .PHONY : src/vint.f90.o
 
 src/vint.i: src/vint.f90.i
@@ -286,7 +286,7 @@ src/vint.i: src/vint.f90.i
 
 # target to preprocess a source file
 src/vint.f90.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/eloss.dir/build.make CMakeFiles/eloss.dir/src/vint.f90.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/eloss.exe.dir/build.make CMakeFiles/eloss.exe.dir/src/vint.f90.i
 .PHONY : src/vint.f90.i
 
 src/vint.s: src/vint.f90.s
@@ -294,7 +294,7 @@ src/vint.s: src/vint.f90.s
 
 # target to generate assembly for a file
 src/vint.f90.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/eloss.dir/build.make CMakeFiles/eloss.dir/src/vint.f90.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/eloss.exe.dir/build.make CMakeFiles/eloss.exe.dir/src/vint.f90.s
 .PHONY : src/vint.f90.s
 
 # Help Target
@@ -305,7 +305,7 @@ help:
 	@echo "... depend"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
-	@echo "... eloss"
+	@echo "... eloss.exe"
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"
