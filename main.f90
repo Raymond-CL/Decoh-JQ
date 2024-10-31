@@ -2,6 +2,7 @@ module optflags
   implicit none
   ! options and flags
   integer, public :: quench_opt
+  logical :: decoherent
 end module optflags
 
 
@@ -60,6 +61,8 @@ subroutine readinput
   if(quench_opt.eq.1)  ndimn = 3
   if(quench_opt.eq.2)  ndimn = 4
   if(quench_opt.eq.3)  ndimn = 7
+
+  decoherent = .true.
   ! some fixed variable values need to be set
   prnt = -1
 end subroutine readinput
@@ -73,10 +76,12 @@ program main
   use optflags
   use kinematics
   use qcd, only : setqcd
+  ! use multi
   implicit none
   character(len=40), parameter :: pdfgrid = './grids/i2Tn2.00.pds'
   real(wp) :: dmin,dmax,bin,dL,dM,dR
   integer :: id,nd
+  ! real(wp) :: Rcone = 0.4d0
 
   call time_start
   call readinput
@@ -114,6 +119,9 @@ program main
     call vegas(limits(1:2*ndimn),fxn,initial,npt2,itn2,prnt,intres,stddev,chisq)
     eff = real(accevent,wp)/real(totevent,wp)*100d0
     write(*,'(3(f8.2),2(es15.4),f8.2)') dL,dM,dR,intres/bin,stddev,eff
+    ! write(*,'(5(f8.2))') dM,&
+    !   nLL1(dM*Rcone),nMLL1(dM*Rcone),&
+    !   nLL2(dM*Rcone,0.247d0),nMLL2(dM*Rcone,0.247d0)
   enddo
 
   call time_stop
@@ -128,6 +136,8 @@ function fxn(dx,wgt)
   use kinematics
   use optflags
   use qcd, only: alphas,nf
+  use bdmps
+  use multi
   implicit none
   double precision, dimension(:), intent(in) :: dx
   double precision, intent(in) :: wgt
@@ -162,11 +172,20 @@ function fxn(dx,wgt)
   elossG = 0d0
   if(quench_opt.eq.1) then
     elossQ = 20d0
-    elossG = 30d0
+    elossG = CA/CF * elossQ
+  elseif(quench_opt.eq.2) then
+    wcq = 15d0
+    wcg = CA/CF * wcq
+    elossQ = eps
+    elossG = eps
   endif
 
   ! quark jet differential cross-section
-  pTq = pTjet + elossQ
+  if(decoherent .and. quench_opt.ne.0) then
+    pTq = getpt(pTjet,0.4d0,elossQ,0.5d0)
+  else
+    pTq = pTjet + elossQ
+  endif
 
   x1 = pTq / CME * (exp(+yTrig) + exp(+yAsso))
   x2 = pTq / CME * (exp(-yTrig) + exp(-yAsso))
@@ -279,9 +298,18 @@ function fxn(dx,wgt)
 
   fxnq = fxnq * as*as * twoPI * ptq * x1*x2 / mans**2
   fxnq = fxnq / (yAmax-yAmin) * gev2barn / nano
+  if(quench_opt.eq.2 .and. .not.decoherent) then
+    fxnq = fxnq * De(wcq,eps,1)
+  elseif(quench_opt.eq.2 .and. decoherent) then
+    fxnq = fxnq * De(wcg,eps,0)
+  endif
 
   ! gluon jet differential cross-section
-  ptg = pTjet + elossG
+  if(decoherent .and. quench_opt.ne.0) then
+    pTg = getpt(pTjet,0.4d0,elossG,0.5d0)
+  else
+    pTg = pTjet + elossG
+  endif
 
   x1 = ptg / CME * (exp(+yTrig) + exp(+yAsso))
   x2 = ptg / CME * (exp(-yTrig) + exp(-yAsso))
@@ -340,6 +368,9 @@ function fxn(dx,wgt)
 
   fxng = fxng * as*as * twoPI * ptg * x1*x2 / mans**2
   fxng = fxng / (yAmax-yAmin) * gev2barn / nano
+  if(quench_opt.eq.2) then
+    fxng = fxng * De(wcg,eps,0)
+  endif
 
   ! sum quark and gluon jet cross-section
   fxn = fxnq + fxng
