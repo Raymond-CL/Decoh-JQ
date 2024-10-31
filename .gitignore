@@ -36,3 +36,6 @@
 
 # data
 *.pds
+
+# build directory
+./build
