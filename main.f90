@@ -174,7 +174,7 @@ function fxn(dx,wgt)
     elossQ = 20d0
     elossG = CA/CF * elossQ
   elseif(quench_opt.eq.2) then
-    wcq = 15d0
+    wcq = 2d0
     wcg = CA/CF * wcq
     elossQ = eps
     elossG = eps
