@@ -38,4 +38,4 @@
 *.pds
 
 # build directory
-./build
+build/*

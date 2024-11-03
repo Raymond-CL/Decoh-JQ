@@ -62,7 +62,7 @@ subroutine readinput
   if(quench_opt.eq.2)  ndimn = 4
   if(quench_opt.eq.3)  ndimn = 7
 
-  decoherent = .true.
+  decoherent = .false.
   ! some fixed variable values need to be set
   prnt = -1
 end subroutine readinput
@@ -149,6 +149,9 @@ function fxn(dx,wgt)
   real(wp) :: fxnq,fxng
   real(wp) :: elossQ,elossG
   real(wp) :: eps
+  real(wp) :: Rcone
+  real(wp) :: Qmed
+  real(wp) :: avgn
   interface
     function CT18Pdf(iparton,x,Q)
       implicit double precision (a-h,o-z)
@@ -171,18 +174,22 @@ function fxn(dx,wgt)
   elossQ = 0d0
   elossG = 0d0
   if(quench_opt.eq.1) then
-    elossQ = 20d0
+    ! coh:10d0; decoh:8d0;
+    elossQ = 8d0
     elossG = CA/CF * elossQ
   elseif(quench_opt.eq.2) then
-    wcq = 3d0
+    ! coh:15d0; decoh:10d0 qg, 3d0 gg
+    wcq = 15d0
     wcg = CA/CF * wcq
     elossQ = eps
     elossG = eps
   endif
+  Rcone = 0.4d0
+  Qmed = 0.5d0
 
   ! quark jet differential cross-section
   if(decoherent .and. quench_opt.ne.0) then
-    pTq = getpt(pTjet,0.4d0,elossQ,0.5d0)
+    pTq = getpt(pTjet,Rcone,elossQ,Qmed)
   else
     pTq = pTjet + elossQ
   endif
@@ -298,15 +305,21 @@ function fxn(dx,wgt)
 
   fxnq = fxnq * as*as * twoPI * ptq * x1*x2 / mans**2
   fxnq = fxnq / (yAmax-yAmin) * gev2barn / nano
-  if(quench_opt.eq.2 .and. .not.decoherent) then
+  ! if(quench_opt.eq.2 .and. .not.decoherent) then
+  !   fxnq = fxnq * De(wcq,eps,1)
+  ! elseif(quench_opt.eq.2 .and. decoherent) then
+  !   fxnq = fxnq * De(wcg,eps,0)
+  ! endif
+  !avgn = nMLL2(pTq*Rcone,Qmed)
+  !if(avgn.le.1.5d0) then
     fxnq = fxnq * De(wcq,eps,1)
-  elseif(quench_opt.eq.2 .and. decoherent) then
-    fxnq = fxnq * De(wcg,eps,0)
-  endif
+  !else
+  !  fxnq = fxnq * De(wcg,eps,0)
+  !endif
 
   ! gluon jet differential cross-section
   if(decoherent .and. quench_opt.ne.0) then
-    pTg = getpt(pTjet,0.4d0,elossG,0.5d0)
+    pTg = getpt(pTjet,Rcone,elossG,Qmed)
   else
     pTg = pTjet + elossG
   endif

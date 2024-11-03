@@ -10,7 +10,7 @@ module multi
   real(wp), parameter :: a = 1d0/4d0+5d0*Nf/(54d0*PI*b)
   real(wp), parameter :: AA = sqrt(144d0/(33d0-2d0*nf))
   real(wp), parameter :: BB = (33d0+2d0*nf/9d0)/(33d0-2d0*nf)
-  public :: getpt
+  public :: getpt,nMLL2
 
 contains
 
