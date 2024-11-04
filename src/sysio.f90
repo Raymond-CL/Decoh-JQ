@@ -38,6 +38,7 @@ contains
     read(u,*) npt1,itn1
     read(u,*) npt2,itn2
     read(u,*) quench_opt
+    read(u,*) xsec_fac
     read(u,*) decoherent
     close(u)
     ! define some options and flags

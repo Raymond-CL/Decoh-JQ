@@ -33,9 +33,6 @@ program main
     call vegas(limits(1:2*ndimn),fxn,initial,npt2,itn2,prnt,intres,stddev,chisq)
     eff = real(accevent,wp)/real(totevent,wp)*100d0
     write(*,'(3(f8.2),2(es15.4),f8.2)') dL,dM,dR,intres/bin,stddev,eff
-    ! write(*,'(5(f8.2))') dM,&
-    !   nLL1(dM*Rcone),nMLL1(dM*Rcone),&
-    !   nLL2(dM*Rcone,0.247d0),nMLL2(dM*Rcone,0.247d0)
   enddo
 
   call time_stop
@@ -80,22 +77,22 @@ function fxn(dx,wgt)
   yTrig = dx(1)
   yAsso = dx(2)
   pTjet = dx(3)
-  ! if(quench_opt.eq.2) then
-  !   eps = dx(4)
-  ! endif
+  if(quench_opt.eq.2) then
+    eps = dx(4)
+  endif
 
   elossQ = 0d0
   elossG = 0d0
   if(quench_opt.eq.1) then
-    ! coh:10d0; decoh:8d0;
-    elossQ = 4.2d0
+    ! coh:10d0; decoh:4.3d0;
+    elossQ = 10d0
     elossG = CA/CF * elossQ
-  ! elseif(quench_opt.eq.2) then
-  !   ! coh:15d0; decoh:10d0 qg, 3d0 gg
-  !   wcq = 15d0
-  !   wcg = CA/CF * wcq
-  !   elossQ = eps
-  !   elossG = eps
+  elseif(quench_opt.eq.2) then
+    ! coh:15d0; decoh:10d0 qg, 3d0 gg
+    wcq = 15d0
+    wcg = CA/CF * wcq
+    elossQ = eps
+    elossG = eps
   endif
   Rcone = 0.4d0
   Qmed = 0.5d0
@@ -103,6 +100,7 @@ function fxn(dx,wgt)
   ! ************************************
   ! quark jet differential cross-section
   ! ************************************
+  ! get parent pt for coh or decoh case
   if(decoherent .and. quench_opt.ne.0) then
     pTq = getpt(pTjet,Rcone,Qmed,elossG,1)
   else
@@ -220,21 +218,31 @@ function fxn(dx,wgt)
 
   fxnq = fxnq * as*as * twoPI * ptq * x1*x2 / mans**2
   fxnq = fxnq / (yAmax-yAmin) * gev2barn / nano
-  ! if(quench_opt.eq.2 .and. .not.decoherent) then
-  !   fxnq = fxnq * De(wcq,eps,1)
-  ! elseif(quench_opt.eq.2 .and. decoherent) then
-  !   fxnq = fxnq * De(wcg,eps,0)
-  ! endif
-  !avgn = nMLL2(pTq*Rcone,Qmed)
-  !if(avgn.le.1.5d0) then
-  !  fxnq = fxnq * De(wcq,eps,1)
-  !else
-  !  fxnq = fxnq * De(wcg,eps,0)
-  !endif
+  ! for BDMPS D(e)
+  if(quench_opt.eq.2 .and. .not.decoherent) then
+    fxnq = fxnq * De(wcq,eps,1)
+  elseif(quench_opt.eq.2 .and. decoherent) then
+    ! avgn = nMLL2(pTq*Rcone,Qmed)
+    ! if(avgn.le.1.5d0) then
+    !  fxnq = fxnq * De(wcq,eps,1)
+    ! else
+    !  fxnq = fxnq * De(wcg,eps,0)
+    ! endif
+    fxnq = fxnq * De(wcg,eps,0)
+  endif
+  ! for average dE or n
+  if(xsec_fac.eq.0) then
+    fxnq = fxnq
+  elseif(xsec_fac.eq.1) then
+    fxnq = fxnq * (ptq-pTjet)
+  elseif(xsec_fac.eq.2) then
+    fxnq = fxnq * nMLL2(ptq*Rcone,Qmed)
+  endif
 
   ! ************************************
   ! gluon jet differential cross-section
   ! ************************************
+  ! get parent pt for coh or decoh case
   if(decoherent .and. quench_opt.ne.0) then
     pTg = getpt(pTjet,Rcone,Qmed,elossG,0)
   else
@@ -298,11 +306,22 @@ function fxn(dx,wgt)
 
   fxng = fxng * as*as * twoPI * ptg * x1*x2 / mans**2
   fxng = fxng / (yAmax-yAmin) * gev2barn / nano
-  ! if(quench_opt.eq.2) then
-  !   fxng = fxng * De(wcg,eps,0)
-  ! endif
+  ! for BDMPS D(e)
+  if(quench_opt.eq.2) then
+    fxng = fxng * De(wcg,eps,0)
+  endif
+  ! for average dE or n
+  if(xsec_fac.eq.0) then
+    fxng = fxng
+  elseif(xsec_fac.eq.1) then
+    fxng = fxng * (ptg-pTjet)
+  elseif(xsec_fac.eq.2) then
+    fxng = fxng * nMLL2(ptg*Rcone,Qmed)
+  endif
 
-  ! sum quark and gluon jet cross-section
+  ! ************************************
+  ! sum quark + gluon jet cross-section
+  ! ************************************
   fxn = fxnq + fxng
 
   accevent = accevent + 1

@@ -6,4 +6,5 @@
 10000,10                      ! vegas warm-up
 100000,1                      ! vegas end-run
 1                             ! quench_opt
-.true.                       ! decoherent
+0                             ! xsec_fac
+.false.                       ! decoherent
