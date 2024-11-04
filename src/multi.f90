@@ -14,17 +14,23 @@ module multi
 
 contains
 
-  function getpt(ptfinal,R,e,Qm) result(ptinit)
-  real(wp), intent(in) :: ptfinal,R,e,Qm
-  real(wp) :: ptinit
-  real(wp) :: ptin,ptout
-  ptin = ptfinal
-  ptout = ptfinal + e * nMLL2(ptfinal*R,Qm)
+  function getpt(ptj,R,Qm,e,qg) result(res)
+  real(wp), intent(in) :: ptj,R,Qm,e
+  real(wp) :: res
+  integer :: qg
+  real(wp) :: ptin,ptout,fac
+  if(qg.eq.0) then
+    fac = 1.6d0
+  else
+    fac = 1d0
+  endif
+  ptin = ptj
+  ptout = ptj + e * fac * nMLL2(ptj*R,Qm)
   do while(abs(ptin-ptout).gt.1d0)
     ptin = ptout
-    ptout = ptfinal + e * nMLL2(ptin*R,Qm)
+    ptout = ptj + e * fac * nMLL2(ptin*R,Qm)
   enddo
-  ptinit = ptout
+  res = ptout
   return
   end function getpt
 

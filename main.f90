@@ -1,109 +1,23 @@
-module optflags
-  implicit none
-  ! options and flags
-  integer, public :: quench_opt
-  logical :: decoherent
-end module optflags
-
-
-
-module eventcounter
-  use const
-  implicit none
-  real(wp), public :: eff
-  integer(ip), public :: accevent,totevent
-end module eventcounter
-
-
-
-function getu() result(u)
-  implicit none
-  integer :: u
-  logical :: ex
-  do u = 10, 100
-    inquire(unit=u,opened=ex)
-    if(.not. ex) return
-  enddo
-end function getu
-
-
-
-subroutine readinput
-  use vint
-  use optflags
-  use kinematics
-  implicit none
-  integer :: stat,u
-  interface
-    function getu() result(unit)
-      implicit none
-      integer :: unit
-    end function getu
-  end interface
-  u = getu()
-  open(u,iostat=stat,file='input.dat',status='old')
-  if(stat.ne.0) call exit(11)
-  read(u,*) CME
-  read(u,*) ptTmin,ptTmax
-  read(u,*) yTmin ,yTmax
-  read(u,*) ptAmin,ptAmax
-  read(u,*) yAmin ,yAmax
-  read(u,*) npt1,itn1
-  read(u,*) npt2,itn2
-  close(u)
-  ! define some options and flags
-  quench_opt = 2
-  ! 0: no quenching (pp)
-  ! 1: constant Delta-E
-  ! 2: BDMPS D(e)
-  ! 3: BDMPS+hydro geometry qhat
-  if(quench_opt.eq.0)  ndimn = 3
-  if(quench_opt.eq.1)  ndimn = 3
-  if(quench_opt.eq.2)  ndimn = 4
-  if(quench_opt.eq.3)  ndimn = 7
-
-  decoherent = .false.
-  ! some fixed variable values need to be set
-  prnt = -1
-end subroutine readinput
-
-
-
 program main
   use time
+  use sysio
+  use histloop
   use vint
   use eventcounter
   use optflags
   use kinematics
   use qcd, only : setqcd
-  ! use multi
   implicit none
   character(len=40), parameter :: pdfgrid = './grids/i2Tn2.00.pds'
-  real(wp) :: dmin,dmax,bin,dL,dM,dR
-  integer :: id,nd
-  ! real(wp) :: Rcone = 0.4d0
 
   call time_start
   call readinput
   call setCT18(pdfgrid)
   call setqcd(5,1)
-
-  ! linear scale
-  nd = 48
-  dmin = ptAmin;  dmax = ptAmax
-  bin = (dmax-dmin)/nd
-  ! log scale
-  ! nd = 100
-  ! dmin = 1d-3;  dmax = 1d0
-  ! bin = log(dmax/dmin)/nd
+  call setloop(ptAmin,ptAmax,48,.true.)
+  
   do id = 1,nd
-    ! linear scale
-    dL = dmin + (id-1)*bin
-    dR = dmin + id*bin
-    ! log scale
-    ! dL = dmin*exp((id-1)*bin)
-    ! dR = dmin*exp(id*bin)
-    dM = (dL+dR)/2d0
+    call setbin
 
     limits(1) = yTmin;          limits(ndimn+1) = yTmax
     limits(2) = yAmin;          limits(ndimn+2) = yAmax
@@ -151,7 +65,6 @@ function fxn(dx,wgt)
   real(wp) :: eps
   real(wp) :: Rcone
   real(wp) :: Qmed
-  real(wp) :: avgn
   interface
     function CT18Pdf(iparton,x,Q)
       implicit double precision (a-h,o-z)
@@ -167,29 +80,31 @@ function fxn(dx,wgt)
   yTrig = dx(1)
   yAsso = dx(2)
   pTjet = dx(3)
-  if(quench_opt.eq.2) then
-    eps = dx(4)
-  endif
+  ! if(quench_opt.eq.2) then
+  !   eps = dx(4)
+  ! endif
 
   elossQ = 0d0
   elossG = 0d0
   if(quench_opt.eq.1) then
     ! coh:10d0; decoh:8d0;
-    elossQ = 8d0
+    elossQ = 4.2d0
     elossG = CA/CF * elossQ
-  elseif(quench_opt.eq.2) then
-    ! coh:15d0; decoh:10d0 qg, 3d0 gg
-    wcq = 15d0
-    wcg = CA/CF * wcq
-    elossQ = eps
-    elossG = eps
+  ! elseif(quench_opt.eq.2) then
+  !   ! coh:15d0; decoh:10d0 qg, 3d0 gg
+  !   wcq = 15d0
+  !   wcg = CA/CF * wcq
+  !   elossQ = eps
+  !   elossG = eps
   endif
   Rcone = 0.4d0
   Qmed = 0.5d0
 
+  ! ************************************
   ! quark jet differential cross-section
+  ! ************************************
   if(decoherent .and. quench_opt.ne.0) then
-    pTq = getpt(pTjet,Rcone,elossQ,Qmed)
+    pTq = getpt(pTjet,Rcone,Qmed,elossG,1)
   else
     pTq = pTjet + elossQ
   endif
@@ -312,14 +227,16 @@ function fxn(dx,wgt)
   ! endif
   !avgn = nMLL2(pTq*Rcone,Qmed)
   !if(avgn.le.1.5d0) then
-    fxnq = fxnq * De(wcq,eps,1)
+  !  fxnq = fxnq * De(wcq,eps,1)
   !else
   !  fxnq = fxnq * De(wcg,eps,0)
   !endif
 
+  ! ************************************
   ! gluon jet differential cross-section
+  ! ************************************
   if(decoherent .and. quench_opt.ne.0) then
-    pTg = getpt(pTjet,Rcone,elossG,Qmed)
+    pTg = getpt(pTjet,Rcone,Qmed,elossG,0)
   else
     pTg = pTjet + elossG
   endif
@@ -381,9 +298,9 @@ function fxn(dx,wgt)
 
   fxng = fxng * as*as * twoPI * ptg * x1*x2 / mans**2
   fxng = fxng / (yAmax-yAmin) * gev2barn / nano
-  if(quench_opt.eq.2) then
-    fxng = fxng * De(wcg,eps,0)
-  endif
+  ! if(quench_opt.eq.2) then
+  !   fxng = fxng * De(wcg,eps,0)
+  ! endif
 
   ! sum quark and gluon jet cross-section
   fxn = fxnq + fxng
