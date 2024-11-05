@@ -7,4 +7,4 @@
 100000,1                      ! vegas end-run
 2                             ! quench_opt
 0                             ! xsec_fac
-.false.                       ! decoherent
+.true.                       ! decoherent

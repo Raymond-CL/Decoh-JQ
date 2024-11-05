@@ -32,6 +32,8 @@ program main
     limits(3) = dL;             limits(ndimn+3) = dR
     if(quench_opt.eq.2) then
       limits(4) = 0d0;             limits(ndimn+4) = 50d0
+      ! limits(5) = 0d0;             limits(ndimn+5) = 50d0   ! testing
+      ! limits(6) = 0d0;             limits(ndimn+6) = 50d0   ! testing
     endif
     
     ! ************************************
@@ -81,6 +83,7 @@ function fxn(dx,wgt)
   real(wp) :: eps
   real(wp) :: Rcone
   real(wp) :: Qmed
+  real(wp) :: eps1,eps2,eps3
   interface
     function CT18Pdf(iparton,x,Q)
       implicit double precision (a-h,o-z)
@@ -97,7 +100,10 @@ function fxn(dx,wgt)
   yAsso = dx(2)
   pTjet = dx(3)
   if(quench_opt.eq.2) then
-    eps = dx(4)
+    eps = dx(4)  !testing
+    ! eps1 = dx(4)  ! testing
+    ! eps2 = dx(5)  ! testing
+    ! eps3 = dx(6)  ! testing
   endif
 
   ! ************************************
@@ -110,11 +116,11 @@ function fxn(dx,wgt)
     elossQ = 10d0
     elossG = CA/CF * elossQ
   elseif(quench_opt.eq.2) then
-    ! coh:15d0; decoh:10d0 qg, 3d0 gg
+    ! coh:15d0; decoh:3d0;
     wcq = 3d0
     wcg = CA/CF * wcq
-    elossQ = eps
-    elossG = eps
+    elossQ = eps !eps1+eps2+eps3 !eps
+    elossG = eps !eps1+eps2+eps3 !eps
   endif
   Rcone = 0.4d0
   Qmed = 0.5d0
@@ -125,6 +131,7 @@ function fxn(dx,wgt)
   ! get parent pt for coh or decoh case
   if(decoherent .and. quench_opt.ne.0) then
     pTq = getpt(pTjet,Rcone,Qmed,elossG,1)     ! elossG not elossQ
+    !ptq = pTjet + eps1+eps2+eps3
   else
     pTq = pTjet + elossQ
   endif
@@ -253,9 +260,11 @@ function fxn(dx,wgt)
 
   ! for BDMPS D(e)
   if(quench_opt.eq.2 .and. .not.decoherent) then
-    fxnq = fxnq * De(wcq,eps,1)
+    fxnq = fxnq * De(wcq,eps,1)    !testing
+    ! fxnq = fxnq * De(wcq,eps1,1) * De(wcq,eps2,1) * De(wcq,eps3,1)
   elseif(quench_opt.eq.2 .and. decoherent) then
     fxnq = fxnq * De(wcg,eps,0)
+    ! fxnq = fxnq * De(wcg,eps1,0) * De(wcg,eps2,0) * De(wcg,eps3,0)
   endif
 
   ! for average dE or n
@@ -273,6 +282,7 @@ function fxn(dx,wgt)
   ! get parent pt for coh or decoh case
   if(decoherent .and. quench_opt.ne.0) then
     pTg = getpt(pTjet,Rcone,Qmed,elossG,0)
+    ! pTg = pTjet + eps1+eps2+eps3
   else
     pTg = pTjet + elossG
   endif
@@ -339,7 +349,9 @@ function fxn(dx,wgt)
 
   ! for BDMPS D(e)
   if(quench_opt.eq.2) then
-    fxng = fxng * De(wcg,eps,0)
+    fxng = fxng * De(wcg,eps,0)    !testing
+    ! fxng = fxng * De(wcg,eps1,0) * De(wcg,eps2,0) * De(wcg,eps3,0)
+    ! fxng = fxng * De(wcg,eps1,0) * De(wcg,eps2,0) * De(wcg,eps3,0)
   endif
 
   ! for average dE or n
