@@ -10,12 +10,20 @@ program main
   implicit none
   character(len=40), parameter :: pdfgrid = './grids/i2Tn2.00.pds'
 
+  ! ************************************
+  ! initialization procedures
+  ! ************************************
   call time_start
   call readinput
   call setCT18(pdfgrid)
   call setqcd(5,1)
   call setloop(ptAmin,ptAmax,48,.true.)
   
+  ! ************************************
+  ! looping histogram
+  ! ************************************
+  tot_xsec = 0d0;
+  write(*,*) "|---L---|---M---|---R---|----result----|----error-----|--eff--|"
   do id = 1,nd
     call setbin
 
@@ -26,15 +34,24 @@ program main
       limits(4) = 0d0;             limits(ndimn+4) = 50d0
     endif
     
+    ! ************************************
+    ! vegas integration
+    ! ************************************
     initial = -1
+    docount = .false.
     call vegas(limits(1:2*ndimn),fxn,initial,npt1,itn1,prnt,intres,stddev,chisq)
     initial = +1
+    docount = .true.
     accevent = 0;  totevent = 0
     call vegas(limits(1:2*ndimn),fxn,initial,npt2,itn2,prnt,intres,stddev,chisq)
     eff = real(accevent,wp)/real(totevent,wp)*100d0
-    write(*,'(3(f8.2),2(es15.4),f8.2)') dL,dM,dR,intres/bin,stddev,eff
+    write(*,'(3(f8.2),2(es15.5),f8.2)') dL,dM,dR,intres/bin,stddev,eff
   enddo
+  write(*,'(a,es15.5)') "total cross-section: ",tot_xsec/itn2
 
+  ! ************************************
+  ! setting energy loss options
+  ! ************************************
   call time_stop
   call print_time
 end program main
@@ -81,6 +98,9 @@ function fxn(dx,wgt)
     eps = dx(4)
   endif
 
+  ! ************************************
+  ! setting energy loss options
+  ! ************************************
   elossQ = 0d0
   elossG = 0d0
   if(quench_opt.eq.1) then
@@ -107,19 +127,19 @@ function fxn(dx,wgt)
     pTq = pTjet + elossQ
   endif
 
+  ! momentum fraction, Mandelstam and scales
   x1 = pTq / CME * (exp(+yTrig) + exp(+yAsso))
   x2 = pTq / CME * (exp(-yTrig) + exp(-yAsso))
   if(x1.le.0d0 .or. x1.gt.1d0) return
   if(x2.le.0d0 .or. x2.gt.1d0) return
-
   mans = +x1*x2*CME*CME
   mant = -x1*CME*pTq*exp(-yTrig)
   manu = -x2*CME*pTq*exp(+yTrig)
-
   mufac = pTq
   muren = mufac
   as = alphas(muren)  !as = CT18Alphas(muren)
 
+  ! PDFs
   pdf1 = 1d0;         pdf2 = 1d0
   do i = -nf, +nf
     pdf1(i) = CT18Pdf(i,x1,mufac)
@@ -208,6 +228,7 @@ function fxn(dx,wgt)
   enddo
   sig7uq = -9d0/4d0 * ampC(mans,mant,manu)
 
+  ! sum channels
   fxnq = fxnq + dis1  * sig1 &
               + dis2  * sig2 &
               + dis3  * sig3 &
@@ -216,8 +237,10 @@ function fxn(dx,wgt)
               + dis7tq * sig7tq &
               + dis7uq * sig7uq
 
+  ! common factor and unit conversion
   fxnq = fxnq * as*as * twoPI * ptq * x1*x2 / mans**2
   fxnq = fxnq / (yAmax-yAmin) * gev2barn / nano
+
   ! for BDMPS D(e)
   if(quench_opt.eq.2 .and. .not.decoherent) then
     fxnq = fxnq * De(wcq,eps,1)
@@ -230,6 +253,7 @@ function fxn(dx,wgt)
     ! endif
     fxnq = fxnq * De(wcg,eps,0)
   endif
+
   ! for average dE or n
   if(xsec_fac.eq.0) then
     fxnq = fxnq
@@ -249,19 +273,19 @@ function fxn(dx,wgt)
     pTg = pTjet + elossG
   endif
 
+  ! momentum fraction, Mandelstam and scales
   x1 = ptg / CME * (exp(+yTrig) + exp(+yAsso))
   x2 = ptg / CME * (exp(-yTrig) + exp(-yAsso))
   if(x1.le.0d0 .or. x1.gt.1d0) return
   if(x2.le.0d0 .or. x2.gt.1d0) return
-
   mans = +x1*x2*CME*CME
   mant = -x1*CME*ptg*exp(-yTrig) 
   manu = -x2*CME*ptg*exp(+yTrig)
-
   mufac = ptg 
   muren = mufac
   as = alphas(muren)
 
+  ! PDFs
   pdf1=1d0;     pdf2=1d0
   do i = -nf, +nf
     pdf1(i) = CT18Pdf(i,x1,mufac)
@@ -299,17 +323,21 @@ function fxn(dx,wgt)
   dis8 = pdf1(0)*pdf2(0)
   sig8 = 9d0/2d0 * ampD(mans,mant,manu)
 
+  ! sum channels
   fxng = fxng + dis5  * sig5 &
               + dis7tg * sig7tg &
               + dis7ug * sig7ug &
               + dis8  * sig8
 
+  ! common factor and unit conversion
   fxng = fxng * as*as * twoPI * ptg * x1*x2 / mans**2
   fxng = fxng / (yAmax-yAmin) * gev2barn / nano
+
   ! for BDMPS D(e)
   if(quench_opt.eq.2) then
     fxng = fxng * De(wcg,eps,0)
   endif
+
   ! for average dE or n
   if(xsec_fac.eq.0) then
     fxng = fxng
@@ -324,7 +352,11 @@ function fxn(dx,wgt)
   ! ************************************
   fxn = fxnq + fxng
 
+  ! ************************************
+  ! event number and tot_xsec counter
+  ! ************************************
   accevent = accevent + 1
+  if(docount)  tot_xsec = tot_xsec + fxn*wgt
   return
 
 end function fxn
