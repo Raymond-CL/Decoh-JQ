@@ -37,9 +37,11 @@ program main
     ! ************************************
     ! vegas integration
     ! ************************************
+    ! warm-up run
     initial = -1
     docount = .false.
     call vegas(limits(1:2*ndimn),fxn,initial,npt1,itn1,prnt,intres,stddev,chisq)
+    ! actual run
     initial = +1
     docount = .true.
     accevent = 0;  totevent = 0
@@ -109,7 +111,7 @@ function fxn(dx,wgt)
     elossG = CA/CF * elossQ
   elseif(quench_opt.eq.2) then
     ! coh:15d0; decoh:10d0 qg, 3d0 gg
-    wcq = 15d0
+    wcq = 3d0
     wcg = CA/CF * wcq
     elossQ = eps
     elossG = eps
@@ -122,10 +124,18 @@ function fxn(dx,wgt)
   ! ************************************
   ! get parent pt for coh or decoh case
   if(decoherent .and. quench_opt.ne.0) then
-    pTq = getpt(pTjet,Rcone,Qmed,elossG,1)
+    pTq = getpt(pTjet,Rcone,Qmed,elossG,1)     ! elossG not elossQ
   else
     pTq = pTjet + elossQ
   endif
+
+  ! this is a test with avgn cut, not yet tested
+  ! avgn = nMLL2(pTq*Rcone,Qmed)
+  ! if(avgn.le.1.5d0) then
+  !   fxnq = fxnq * De(wcq,eps,1)
+  ! else
+  !   fxnq = fxnq * De(wcg,eps,0)
+  ! endif
 
   ! momentum fraction, Mandelstam and scales
   x1 = pTq / CME * (exp(+yTrig) + exp(+yAsso))
@@ -245,12 +255,6 @@ function fxn(dx,wgt)
   if(quench_opt.eq.2 .and. .not.decoherent) then
     fxnq = fxnq * De(wcq,eps,1)
   elseif(quench_opt.eq.2 .and. decoherent) then
-    ! avgn = nMLL2(pTq*Rcone,Qmed)
-    ! if(avgn.le.1.5d0) then
-    !  fxnq = fxnq * De(wcq,eps,1)
-    ! else
-    !  fxnq = fxnq * De(wcg,eps,0)
-    ! endif
     fxnq = fxnq * De(wcg,eps,0)
   endif
 
