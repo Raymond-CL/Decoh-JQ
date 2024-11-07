@@ -46,6 +46,7 @@ contains
     if(quench_opt.eq.1)  ndimn = 3
     if(quench_opt.eq.2)  ndimn = 4
     if(quench_opt.eq.3)  ndimn = 7
+    qgchannel = 2
     ! some fixed variable values need to be set
     prnt = -1
   end subroutine readinput

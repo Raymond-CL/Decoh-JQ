@@ -1,7 +1,9 @@
 module optflags
   implicit none
   ! options and flags
-  integer, public :: quench_opt
-  integer, public :: xsec_fac
-  logical, public :: decoherent
+  public
+  integer :: quench_opt
+  integer :: xsec_fac
+  logical :: decoherent
+  integer :: qgchannel
 end module optflags

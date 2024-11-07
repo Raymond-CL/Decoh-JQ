@@ -32,8 +32,6 @@ program main
     limits(3) = dL;             limits(ndimn+3) = dR
     if(quench_opt.eq.2) then
       limits(4) = 0d0;             limits(ndimn+4) = 50d0
-      ! limits(5) = 0d0;             limits(ndimn+5) = 50d0   ! testing
-      ! limits(6) = 0d0;             limits(ndimn+6) = 50d0   ! testing
     endif
     
     ! ************************************
@@ -83,7 +81,7 @@ function fxn(dx,wgt)
   real(wp) :: eps
   real(wp) :: Rcone
   real(wp) :: Qmed
-  real(wp) :: eps1,eps2,eps3
+  real(wp) :: avgnq,avgng
   interface
     function CT18Pdf(iparton,x,Q)
       implicit double precision (a-h,o-z)
@@ -100,10 +98,7 @@ function fxn(dx,wgt)
   yAsso = dx(2)
   pTjet = dx(3)
   if(quench_opt.eq.2) then
-    eps = dx(4)  !testing
-    ! eps1 = dx(4)  ! testing
-    ! eps2 = dx(5)  ! testing
-    ! eps3 = dx(6)  ! testing
+    eps = dx(4)
   endif
 
   ! ************************************
@@ -113,14 +108,14 @@ function fxn(dx,wgt)
   elossG = 0d0
   if(quench_opt.eq.1) then
     ! coh:10d0; decoh:4.3d0;
-    elossQ = 10d0
+    elossQ = 4.3d0
     elossG = CA/CF * elossQ
   elseif(quench_opt.eq.2) then
     ! coh:15d0; decoh:3d0;
     wcq = 3d0
     wcg = CA/CF * wcq
-    elossQ = eps !eps1+eps2+eps3 !eps
-    elossG = eps !eps1+eps2+eps3 !eps
+    elossQ = eps
+    elossG = eps
   endif
   Rcone = 0.4d0
   Qmed = 0.5d0
@@ -128,239 +123,247 @@ function fxn(dx,wgt)
   ! ************************************
   ! quark jet differential cross-section
   ! ************************************
-  ! get parent pt for coh or decoh case
-  if(decoherent .and. quench_opt.ne.0) then
-    pTq = getpt(pTjet,Rcone,Qmed,elossG,1)     ! elossG not elossQ
-    !ptq = pTjet + eps1+eps2+eps3
+  if(qgchannel.eq.2 .or. qgchannel.eq.1) then
+
+    ! get parent pt for coh or decoh case
+    if(decoherent .and. quench_opt.ne.0) then
+      pTq = getpt(pTjet,Rcone,Qmed,elossG,1)     ! elossG not elossQ
+      avgnq = 1.0d0*nMLL2(ptq*Rcone,Qmed)
+    else
+      pTq = pTjet + elossQ
+    endif
+
+    ! this is a test with avgn cut, not yet tested
+    ! avgn = nMLL2(pTq*Rcone,Qmed)
+    ! if(avgn.le.1.5d0) then
+    !   fxnq = fxnq * De(wcq,eps,1)
+    ! else
+    !   fxnq = fxnq * De(wcg,eps,0)
+    ! endif
+
+    ! momentum fraction, Mandelstam and scales
+    x1 = pTq / CME * (exp(+yTrig) + exp(+yAsso))
+    x2 = pTq / CME * (exp(-yTrig) + exp(-yAsso))
+    if(x1.le.0d0 .or. x1.gt.1d0) return
+    if(x2.le.0d0 .or. x2.gt.1d0) return
+    mans = +x1*x2*CME*CME
+    mant = -x1*CME*pTq*exp(-yTrig)
+    manu = -x2*CME*pTq*exp(+yTrig)
+    mufac = pTq
+    muren = mufac
+    as = alphas(muren)  !as = CT18Alphas(muren)
+
+    ! PDFs
+    pdf1 = 1d0;         pdf2 = 1d0
+    do i = -nf, +nf
+      pdf1(i) = CT18Pdf(i,x1,mufac)
+      pdf2(i) = CT18Pdf(i,x2,mufac)
+    enddo
+
+    ! q + q'    -> q + q'
+    ! q + qb'   -> q + qb'
+    ! qb + q'   -> qb + q'
+    ! qb + qb'  -> qb + qb' : t-channel
+    ! q + q'    -> q' + q
+    ! q + qb'   -> qb' + q
+    ! qb + q'   -> q' + qb
+    ! qb + qb'  -> qb' + qb : u-channel
+    dis1 = 0d0
+    do i = 1,nf
+      do j = 1,nf
+        if(i.ne.j) then
+          dis1 = dis1 + (pdf1(+i)*pdf2(+j) &
+                        +pdf1(+i)*pdf2(-j) &
+                        +pdf1(-i)*pdf2(+j) &
+                        +pdf1(-i)*pdf2(-j))
+        endif
+      enddo
+    enddo
+    sig1 = ampA(mans,manu,mant) + ampA(mans,mant,manu)
+
+    ! q + qb    -> q' + qb'
+    ! qb + q    -> q' + qb' : s-channel
+    ! q + qb    -> qb' + q'
+    ! qb + q    -> qb' + q' : s-channel
+    dis2 = 0d0
+    do i = 1,nf
+      do j = 1,nf
+        if(i.ne.j) then
+          dis2 = dis2 + (pdf1(+i)*pdf2(-i) &
+                        +pdf1(-i)*pdf2(+i) )
+        endif
+      enddo
+    enddo
+    sig2 = ampA(mant,manu,mans) + ampA(manu,mant,mans)
+
+    ! q + q     -> q + q
+    ! qb + qb   -> qb + qb : identical final state
+    dis3 = 0d0
+    do i = 1,nf
+      dis3 = dis3 + (pdf1(+i)*pdf2(+i) &
+                    +pdf1(-i)*pdf2(-i))
+    enddo
+    sig3 = ampB(mans,mant,manu)
+
+    ! q + qb    -> q + qb
+    ! qb + q    -> qb + q : t- and s-channel
+    ! q + qb    -> qb + q
+    ! qb + q    -> q + qb : u- and s-channel
+    dis4 = 0d0
+    do i = 1,nf
+      dis4 = dis4 + (pdf1(+i)*pdf2(-i) &
+                    +pdf1(-i)*pdf2(+i))
+    enddo
+    sig4 = ampB(manu,mans,mant) + ampB(mant,mans,manu) 
+
+    ! g + g     -> q + qb : t-,u-,s-channel
+    ! g + g     -> qb + q : t-,u-,s-channel
+    dis6 = 0d0
+    do j=1,nf
+      dis6 = dis6 + (pdf1(0)*pdf2(0))
+    enddo
+    sig6 = 27d0/32d0 * (ampC(mant,manu,mans) + ampC(manu,mant,mans))
+    
+    ! q + g     -> q + g
+    ! qb + g    -> qb + g : triple gluon at t-channel
+    dis7tq = 0d0
+    do i=1,nf
+      dis7tq = dis7tq + (pdf1(+i)*pdf2(0) &
+                        +pdf1(-i)*pdf2(0))
+    enddo
+    sig7tq = -9d0/4d0 * ampC(mans,manu,mant)
+
+    ! g + q     -> q + g
+    ! g + qb    -> qb + g : triple gluon at u-channel
+    dis7uq = 0d0
+    do i=1,nf
+      dis7uq = dis7uq + (pdf1(0)*pdf2(+i) &
+                        +pdf1(0)*pdf2(-i))
+    enddo
+    sig7uq = -9d0/4d0 * ampC(mans,mant,manu)
+
+    ! sum channels
+    fxnq = fxnq + dis1  * sig1 &
+                + dis2  * sig2 &
+                + dis3  * sig3 &
+                + dis4  * sig4 &
+                + dis6  * sig6 &
+                + dis7tq * sig7tq &
+                + dis7uq * sig7uq
+
+    ! common factor and unit conversion
+    fxnq = fxnq * as*as * twoPI * ptq * x1*x2 / mans**2
+    fxnq = fxnq / (yAmax-yAmin) * gev2barn / nano
+
+    ! for BDMPS D(e)
+    if(quench_opt.eq.2 .and. .not.decoherent) then
+      fxnq = fxnq * De(wcq,eps,1)
+    elseif(quench_opt.eq.2 .and. decoherent) then
+      fxnq = fxnq * De(wcg,eps,0) !**avgnq
+    endif
+
+    ! for average dE or n
+    if(xsec_fac.eq.0) then
+      fxnq = fxnq
+    elseif(xsec_fac.eq.1) then
+      fxnq = fxnq * (ptq-pTjet)
+    elseif(xsec_fac.eq.2) then
+      fxnq = fxnq * avgnq
+    endif
+
   else
-    pTq = pTjet + elossQ
-  endif
-
-  ! this is a test with avgn cut, not yet tested
-  ! avgn = nMLL2(pTq*Rcone,Qmed)
-  ! if(avgn.le.1.5d0) then
-  !   fxnq = fxnq * De(wcq,eps,1)
-  ! else
-  !   fxnq = fxnq * De(wcg,eps,0)
-  ! endif
-
-  ! momentum fraction, Mandelstam and scales
-  x1 = pTq / CME * (exp(+yTrig) + exp(+yAsso))
-  x2 = pTq / CME * (exp(-yTrig) + exp(-yAsso))
-  if(x1.le.0d0 .or. x1.gt.1d0) return
-  if(x2.le.0d0 .or. x2.gt.1d0) return
-  mans = +x1*x2*CME*CME
-  mant = -x1*CME*pTq*exp(-yTrig)
-  manu = -x2*CME*pTq*exp(+yTrig)
-  mufac = pTq
-  muren = mufac
-  as = alphas(muren)  !as = CT18Alphas(muren)
-
-  ! PDFs
-  pdf1 = 1d0;         pdf2 = 1d0
-  do i = -nf, +nf
-    pdf1(i) = CT18Pdf(i,x1,mufac)
-    pdf2(i) = CT18Pdf(i,x2,mufac)
-  enddo
-
-  ! q + q'    -> q + q'
-  ! q + qb'   -> q + qb'
-  ! qb + q'   -> qb + q'
-  ! qb + qb'  -> qb + qb' : t-channel
-  ! q + q'    -> q' + q
-  ! q + qb'   -> qb' + q
-  ! qb + q'   -> q' + qb
-  ! qb + qb'  -> qb' + qb : u-channel
-  dis1 = 0d0
-  do i = 1,nf
-    do j = 1,nf
-      if(i.ne.j) then
-        dis1 = dis1 + (pdf1(+i)*pdf2(+j) &
-                      +pdf1(+i)*pdf2(-j) &
-                      +pdf1(-i)*pdf2(+j) &
-                      +pdf1(-i)*pdf2(-j))
-      endif
-    enddo
-  enddo
-  sig1 = ampA(mans,manu,mant) + ampA(mans,mant,manu)
-
-  ! q + qb    -> q' + qb'
-  ! qb + q    -> q' + qb' : s-channel
-  ! q + qb    -> qb' + q'
-  ! qb + q    -> qb' + q' : s-channel
-  dis2 = 0d0
-  do i = 1,nf
-    do j = 1,nf
-      if(i.ne.j) then
-        dis2 = dis2 + (pdf1(+i)*pdf2(-i) &
-                      +pdf1(-i)*pdf2(+i) )
-      endif
-    enddo
-  enddo
-  sig2 = ampA(mant,manu,mans) + ampA(manu,mant,mans)
-
-  ! q + q     -> q + q
-  ! qb + qb   -> qb + qb : identical final state
-  dis3 = 0d0
-  do i = 1,nf
-    dis3 = dis3 + (pdf1(+i)*pdf2(+i) &
-                  +pdf1(-i)*pdf2(-i))
-  enddo
-  sig3 = ampB(mans,mant,manu)
-
-  ! q + qb    -> q + qb
-  ! qb + q    -> qb + q : t- and s-channel
-  ! q + qb    -> qb + q
-  ! qb + q    -> q + qb : u- and s-channel
-  dis4 = 0d0
-  do i = 1,nf
-    dis4 = dis4 + (pdf1(+i)*pdf2(-i) &
-                  +pdf1(-i)*pdf2(+i))
-  enddo
-  sig4 = ampB(manu,mans,mant) + ampB(mant,mans,manu) 
-
-  ! g + g     -> q + qb : t-,u-,s-channel
-  ! g + g     -> qb + q : t-,u-,s-channel
-  dis6 = 0d0
-  do j=1,nf
-    dis6 = dis6 + (pdf1(0)*pdf2(0))
-  enddo
-  sig6 = 27d0/32d0 * (ampC(mant,manu,mans) + ampC(manu,mant,mans))
-  
-  ! q + g     -> q + g
-  ! qb + g    -> qb + g : triple gluon at t-channel
-  dis7tq = 0d0
-  do i=1,nf
-    dis7tq = dis7tq + (pdf1(+i)*pdf2(0) &
-                      +pdf1(-i)*pdf2(0))
-  enddo
-  sig7tq = -9d0/4d0 * ampC(mans,manu,mant)
-
-  ! g + q     -> q + g
-  ! g + qb    -> qb + g : triple gluon at u-channel
-  dis7uq = 0d0
-  do i=1,nf
-    dis7uq = dis7uq + (pdf1(0)*pdf2(+i) &
-                      +pdf1(0)*pdf2(-i))
-  enddo
-  sig7uq = -9d0/4d0 * ampC(mans,mant,manu)
-
-  ! sum channels
-  fxnq = fxnq + dis1  * sig1 &
-              + dis2  * sig2 &
-              + dis3  * sig3 &
-              + dis4  * sig4 &
-              + dis6  * sig6 &
-              + dis7tq * sig7tq &
-              + dis7uq * sig7uq
-
-  ! common factor and unit conversion
-  fxnq = fxnq * as*as * twoPI * ptq * x1*x2 / mans**2
-  fxnq = fxnq / (yAmax-yAmin) * gev2barn / nano
-
-  ! for BDMPS D(e)
-  if(quench_opt.eq.2 .and. .not.decoherent) then
-    fxnq = fxnq * De(wcq,eps,1)    !testing
-    ! fxnq = fxnq * De(wcq,eps1,1) * De(wcq,eps2,1) * De(wcq,eps3,1)
-  elseif(quench_opt.eq.2 .and. decoherent) then
-    fxnq = fxnq * De(wcg,eps,0)
-    ! fxnq = fxnq * De(wcg,eps1,0) * De(wcg,eps2,0) * De(wcg,eps3,0)
-  endif
-
-  ! for average dE or n
-  if(xsec_fac.eq.0) then
-    fxnq = fxnq
-  elseif(xsec_fac.eq.1) then
-    fxnq = fxnq * (ptq-pTjet)
-  elseif(xsec_fac.eq.2) then
-    fxnq = fxnq * nMLL2(ptq*Rcone,Qmed)
+    fxnq = 0d0
   endif
 
   ! ************************************
   ! gluon jet differential cross-section
   ! ************************************
-  ! get parent pt for coh or decoh case
-  if(decoherent .and. quench_opt.ne.0) then
-    pTg = getpt(pTjet,Rcone,Qmed,elossG,0)
-    ! pTg = pTjet + eps1+eps2+eps3
-  else
-    pTg = pTjet + elossG
-  endif
+  if(qgchannel.eq.2 .or. qgchannel.eq.0) then
 
-  ! momentum fraction, Mandelstam and scales
-  x1 = ptg / CME * (exp(+yTrig) + exp(+yAsso))
-  x2 = ptg / CME * (exp(-yTrig) + exp(-yAsso))
-  if(x1.le.0d0 .or. x1.gt.1d0) return
-  if(x2.le.0d0 .or. x2.gt.1d0) return
-  mans = +x1*x2*CME*CME
-  mant = -x1*CME*ptg*exp(-yTrig) 
-  manu = -x2*CME*ptg*exp(+yTrig)
-  mufac = ptg 
-  muren = mufac
-  as = alphas(muren)
+    ! get parent pt for coh or decoh case
+    if(decoherent .and. quench_opt.ne.0) then
+      pTg = getpt(pTjet,Rcone,Qmed,elossG,0)
+      avgng = 1.6d0*nMLL2(ptg*Rcone,Qmed)
+    else
+      pTg = pTjet + elossG
+    endif
 
-  ! PDFs
-  pdf1=1d0;     pdf2=1d0
-  do i = -nf, +nf
-    pdf1(i) = CT18Pdf(i,x1,mufac)
-    pdf2(i) = CT18Pdf(i,x2,mufac)
-  enddo
-  
-  ! q + qb    -> g + g
-  ! qb + q    -> g + g : identical final state
-  dis5 = 0d0
-  do i = 1,nf
-    dis5 = dis5 + (pdf1(+i)*pdf2(-i) &
-                  +pdf1(-i)*pdf2(+i))
-  enddo
-  sig5 = 6d0 * ampC(mant,manu,mans)
+    ! momentum fraction, Mandelstam and scales
+    x1 = ptg / CME * (exp(+yTrig) + exp(+yAsso))
+    x2 = ptg / CME * (exp(-yTrig) + exp(-yAsso))
+    if(x1.le.0d0 .or. x1.gt.1d0) return
+    if(x2.le.0d0 .or. x2.gt.1d0) return
+    mans = +x1*x2*CME*CME
+    mant = -x1*CME*ptg*exp(-yTrig) 
+    manu = -x2*CME*ptg*exp(+yTrig)
+    mufac = ptg 
+    muren = mufac
+    as = alphas(muren)
 
-  ! g + q     -> g + q
-  ! g + qb    -> g + qb : triple gluon at t-channel
-  dis7tg = 0d0
-  do i=1,nf
-    dis7tg = dis7tg + (pdf1(0)*pdf2(+i) &
-                      +pdf1(0)*pdf2(-i))
-  enddo
-  sig7tg = -9d0/4d0 * ampC(mans,manu,mant)
+    ! PDFs
+    pdf1=1d0;     pdf2=1d0
+    do i = -nf, +nf
+      pdf1(i) = CT18Pdf(i,x1,mufac)
+      pdf2(i) = CT18Pdf(i,x2,mufac)
+    enddo
+    
+    ! q + qb    -> g + g
+    ! qb + q    -> g + g : identical final state
+    dis5 = 0d0
+    do i = 1,nf
+      dis5 = dis5 + (pdf1(+i)*pdf2(-i) &
+                    +pdf1(-i)*pdf2(+i))
+    enddo
+    sig5 = 6d0 * ampC(mant,manu,mans)
 
-  ! q + g     -> g + q
-  ! qb + g    -> g + qb : triple gluon at u-channel
-  dis7ug = 0d0
-  do i=1,nf
-    dis7ug = dis7ug + (pdf1(+i)*pdf2(0) &
-                      +pdf1(-i)*pdf2(0))
-  enddo
-  sig7ug = -9d0/4d0 * ampC(mans,mant,manu)
+    ! g + q     -> g + q
+    ! g + qb    -> g + qb : triple gluon at t-channel
+    dis7tg = 0d0
+    do i=1,nf
+      dis7tg = dis7tg + (pdf1(0)*pdf2(+i) &
+                        +pdf1(0)*pdf2(-i))
+    enddo
+    sig7tg = -9d0/4d0 * ampC(mans,manu,mant)
 
-  ! g + g -> g + g : identical final state
-  dis8 = pdf1(0)*pdf2(0)
-  sig8 = 9d0/2d0 * ampD(mans,mant,manu)
+    ! q + g     -> g + q
+    ! qb + g    -> g + qb : triple gluon at u-channel
+    dis7ug = 0d0
+    do i=1,nf
+      dis7ug = dis7ug + (pdf1(+i)*pdf2(0) &
+                        +pdf1(-i)*pdf2(0))
+    enddo
+    sig7ug = -9d0/4d0 * ampC(mans,mant,manu)
 
-  ! sum channels
-  fxng = fxng + dis5  * sig5 &
-              + dis7tg * sig7tg &
-              + dis7ug * sig7ug &
-              + dis8  * sig8
+    ! g + g -> g + g : identical final state
+    dis8 = pdf1(0)*pdf2(0)
+    sig8 = 9d0/2d0 * ampD(mans,mant,manu)
 
-  ! common factor and unit conversion
-  fxng = fxng * as*as * twoPI * ptg * x1*x2 / mans**2
-  fxng = fxng / (yAmax-yAmin) * gev2barn / nano
+    ! sum channels
+    fxng = fxng + dis5  * sig5 &
+                + dis7tg * sig7tg &
+                + dis7ug * sig7ug &
+                + dis8  * sig8
 
-  ! for BDMPS D(e)
-  if(quench_opt.eq.2) then
-    fxng = fxng * De(wcg,eps,0)    !testing
-    ! fxng = fxng * De(wcg,eps1,0) * De(wcg,eps2,0) * De(wcg,eps3,0)
-    ! fxng = fxng * De(wcg,eps1,0) * De(wcg,eps2,0) * De(wcg,eps3,0)
-  endif
+    ! common factor and unit conversion
+    fxng = fxng * as*as * twoPI * ptg * x1*x2 / mans**2
+    fxng = fxng / (yAmax-yAmin) * gev2barn / nano
 
-  ! for average dE or n
-  if(xsec_fac.eq.0) then
-    fxng = fxng
-  elseif(xsec_fac.eq.1) then
-    fxng = fxng * (ptg-pTjet)
-  elseif(xsec_fac.eq.2) then
-    fxng = fxng * nMLL2(ptg*Rcone,Qmed)
+    ! for BDMPS D(e)
+    if(quench_opt.eq.2) then
+      fxng = fxng * De(wcg,eps,0) !**avgng
+    endif
+
+    ! for average dE or n
+    if(xsec_fac.eq.0) then
+      fxng = fxng
+    elseif(xsec_fac.eq.1) then
+      fxng = fxng * (ptg-pTjet)
+    elseif(xsec_fac.eq.2) then
+      fxng = fxng * avgng
+    endif
+
+  else 
+    fxng = 0d0
   endif
 
   ! ************************************
