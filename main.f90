@@ -265,15 +265,15 @@ function fxn(dx,wgt)
     ! endif
     
     ! nx = 1d0/avgnq
-    ! nx = 1d0/(1d0+exp((avgnq-2d0)))
+    nx = 1d0/(1d0+exp((avgnq-2d0)))
     ! nx = 1d0/(1d0+exp((avgnq**2-2d0**2)))
     ! nx = 1d0/(1d0+exp((avgnq-2d0)*2d0))
     ! nx = (2d0-avgnq)/2d0
-    if(nx.lt.2d0) then
-      nx = 1d0
-    else
-      nx = 0d0
-    endif
+    ! if(nx.lt.2d0) then
+    !   nx = 1d0
+    ! else
+    !   nx = 0d0
+    ! endif
     
     fxnq = fxnq * ( nx*De(wcq,eps,1) + (1d0-nx)*De(wcg,eps,0) )
 
