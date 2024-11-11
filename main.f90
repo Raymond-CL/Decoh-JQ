@@ -82,6 +82,7 @@ function fxn(dx,wgt)
   real(wp) :: Rcone
   real(wp) :: Qmed
   real(wp) :: avgnq,avgng
+  real(wp) :: nx
   interface
     function CT18Pdf(iparton,x,Q)
       implicit double precision (a-h,o-z)
@@ -112,7 +113,7 @@ function fxn(dx,wgt)
     elossG = CA/CF * elossQ
   elseif(quench_opt.eq.2) then
     ! coh:15d0; decoh:3d0;
-    wcq = 3d0
+    wcq = 10d0
     wcg = CA/CF * wcq
     elossQ = eps
     elossG = eps
@@ -256,11 +257,25 @@ function fxn(dx,wgt)
     fxnq = fxnq / (yAmax-yAmin) * gev2barn / nano
 
     ! for BDMPS D(e)
-    if(quench_opt.eq.2 .and. .not.decoherent) then
-      fxnq = fxnq * De(wcq,eps,1)
-    elseif(quench_opt.eq.2 .and. decoherent) then
-      fxnq = fxnq * De(wcg,eps,0) !**avgnq
+    ! if(quench_opt.eq.2 .and. .not.decoherent) then
+    !   fxnq = fxnq * De(wcq,eps,1)
+    ! elseif(quench_opt.eq.2 .and. decoherent) then
+    !   ! fxnq = fxnq * De(wcg,eps,0) !**avgnq
+    !   fxnq = fxnq * De(wcq,eps,1)     ! test
+    ! endif
+    
+    ! nx = 1d0/avgnq
+    ! nx = 1d0/(1d0+exp((avgnq-2d0)))
+    ! nx = 1d0/(1d0+exp((avgnq**2-2d0**2)))
+    ! nx = 1d0/(1d0+exp((avgnq-2d0)*2d0))
+    ! nx = (2d0-avgnq)/2d0
+    if(nx.lt.2d0) then
+      nx = 1d0
+    else
+      nx = 0d0
     endif
+    
+    fxnq = fxnq * ( nx*De(wcq,eps,1) + (1d0-nx)*De(wcg,eps,0) )
 
     ! for average dE or n
     if(xsec_fac.eq.0) then
