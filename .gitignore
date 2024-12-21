@@ -1,0 +1,28 @@
+# Compiled Object files
+*.o
+
+# Fortran module files
+*.mod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+
+# bash
+*.sh
+
+# data files
+*.dat
+*.pds
+
+# json files
+*.json
+
+# vscode settings
+.vscode/
