@@ -12,7 +12,7 @@ const double Q0 = 0.5;
 const double lambda = log(Q0 / Lqcd);
 const double ymin = 0.0;
 const double ymax = 8.0;
-const int Nn = 4;
+const int Nn = 2;
 const int Ny = 17;
 double Pny_table[Nn + 1][Ny];
 double Sny_table[Nn][Ny];
@@ -89,7 +89,7 @@ int main(void) {
   // print table
   std::ofstream out_file("Pny_table.dat", std::ios::out);
   print_Pny(std::cout);
-  print_Pny(out_file);
+  // print_Pny(out_file);
   out_file.close();
 
   // print_Sny(std::cout);
