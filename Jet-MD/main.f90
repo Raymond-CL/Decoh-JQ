@@ -4,7 +4,7 @@ module md
   ! Jet multiplicity distribution module
   ! ------------------------------------
   ! module to generate table of jet multiplicity distribution 
-  ! Pn(y), where n is number of partons and y is scale
+  ! Pn(y), where n is number of partons and y is scale difference
   ! Requires:
   !   - dqag() subroutine from quadpack_double.f90
   !     https://people.math.sc.edu/Burkardt/f_src/quadpack_double/quadpack_double.html
@@ -44,7 +44,7 @@ module md
   implicit none
   ! color factors
   real(wp), parameter :: Nc=3d0
-  integer, parameter :: Nf=3
+  integer,  parameter :: Nf=3
   real(wp), parameter :: b=11d0/3d0*Nc-2d0/3d0*Nf
   ! QCD scales
   real(wp), parameter :: Lqcd=0.25d0;
@@ -54,8 +54,9 @@ module md
   real(wp), parameter :: ymin=0d0
   real(wp), parameter :: ymax=8d0
   ! table dimensions
-  integer, parameter :: Nn=2
-  integer, parameter :: Ny=16
+  integer,  parameter :: Nn=2
+  integer,  parameter :: Ny=16
+  ! data table
   real(wp) :: Pny_tab(0:Ny,0:Nn)
   real(wp) :: Sny_tab(0:Ny,0:Nn-1)
   ! tmp var to keep track of current n and y
