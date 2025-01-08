@@ -14,7 +14,8 @@ module md
   !   - using an iterative algorithm, we can generate 
   !     a table of Pn(y) up to n = Nn
   !   - Pny_table(:,0) stores y values
-  !   - Sny_table(:,n-1) is used to stores integration results
+  !   - Pny_table(:,1:n) stores P_n values
+  !   - Sny_table(:,n-1) is used to stores temporary integration results
   ! Parameters:
   !   - Nf, Lqcd: for Nf=3, Lqcd~0.247
   !       we can use other values of Nf and Lqcd
@@ -47,14 +48,14 @@ module md
   integer,  parameter :: Nf=3
   real(wp), parameter :: b=11d0/3d0*Nc-2d0/3d0*Nf
   ! QCD scales
-  real(wp), parameter :: Lqcd=0.25d0;
+  real(wp), parameter :: Lqcd=0.247d0;
   real(wp), parameter :: Q0=0.5d0
   real(wp), parameter :: lambda=log(Q0/Lqcd)
   ! scale range y=log(Q/Q0)
   real(wp), parameter :: ymin=0d0
   real(wp), parameter :: ymax=8d0
   ! table dimensions
-  integer,  parameter :: Nn=2
+  integer,  parameter :: Nn=3
   integer,  parameter :: Ny=16
   ! data table
   real(wp) :: Pny_tab(0:Ny,0:Nn)
