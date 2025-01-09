@@ -48,7 +48,7 @@ module md
   integer,  parameter :: Nf=3
   real(wp), parameter :: b=11d0/3d0*Nc-2d0/3d0*Nf
   ! QCD scales
-  real(wp), parameter :: Lqcd=0.247d0;
+  real(wp), parameter :: Lqcd=0.247d0
   real(wp), parameter :: Q0=0.5d0
   real(wp), parameter :: lambda=log(Q0/Lqcd)
   ! scale range y=log(Q/Q0)
@@ -215,7 +215,9 @@ program main
   use iso_fortran_env, only: stdout=>output_unit
   implicit none
   integer :: n,u
-  ! integer :: iy
+
+  integer :: i,in
+  double precision :: pt,ptm,ytmp
   ! double precision :: tmp,tot
   ! double precision :: y1,y2,y3
   ! call timestamp
@@ -235,14 +237,23 @@ program main
   ! enddo
   ! call print_Sny(u)
   ! call print_Pny(u)
-
+  do i=1,20
+    pt = i*50d0 + 40d0
+    ptm = pt * 0.4d0
+    ytmp = log(ptm/Q0)
+    write(u,'(es12.4)',advance='no') pt
+    do in = 1,6
+      write(u,'(es12.4)',advance='no') get_Pny(ytmp,in)
+    enddo
+    write(u,*)
+  enddo
   ! tot = 0d0
   ! do iy = 1,Ny-2
   !   tmp = Pny_tab(iy,1)
   !   tot = tot + 0.5d0 * (7d0-tmp) * gam2(tmp) * tmp
   ! enddo
   ! write(*,*) tot
-  call print_Pny_2(u)
+  ! call print_Pny_2(u)
   ! close(u)
   ! call timestamp
 end program main
