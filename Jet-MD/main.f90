@@ -3,7 +3,7 @@ module md
   ! ------------------------------------
   ! Jet multiplicity distribution module
   ! ------------------------------------
-  ! module to generate table of jet multiplicity distribution 
+  ! module to generate table of jet multiplicity distribution
   ! Pn(y), where n is number of partons and y is scale difference
   ! Requires:
   !   - dqag() subroutine from quadpack_double.f90
@@ -11,7 +11,7 @@ module md
   ! Calculates:
   !   - P_n(y) = sum_{i=1}^{n-1} i/(n-1) * P_{n-i}(y) * S_{i}(y)
   !   - S_i(y) = \int_0^y dy' (y-y') * \gamma(y') P_i(y')
-  !   - using an iterative algorithm, we can generate 
+  !   - using an iterative algorithm, we can generate
   !     a table of Pn(y) up to n = Nn
   !   - Pny_table(:,0) stores y values
   !   - Pny_table(:,1:n) stores P_n values
@@ -37,7 +37,7 @@ module md
   !       the larger the Ny, the more accurate the
   !       interpolation result will be
   ! Note:
-  !   - if set working precision wp=>real32 or wp=>real128, 
+  !   - if set working precision wp=>real32 or wp=>real128,
   !     the single/quadriple precision version of dqag()
   !     is needed, and can be found in same link.
 
@@ -55,7 +55,7 @@ module md
   real(wp), parameter :: ymin=0d0
   real(wp), parameter :: ymax=8d0
   ! table dimensions
-  integer,  parameter :: Nn=3
+  integer,  parameter :: Nn=5
   integer,  parameter :: Ny=16
   ! data table
   real(wp) :: Pny_tab(0:Ny,0:Nn)
@@ -68,53 +68,97 @@ contains
 
   ! initialize tables
   subroutine initialize
-    integer :: n,y
-    do y = 0,Ny
-      Pny_tab(y,0) = y * ymax / Ny
+    integer :: in,iy
+    do iy = 0,Ny
+      Pny_tab(iy,0) = ymin + iy * (ymax - ymin) / Ny
     end do
-    do n = 1,Nn
-      do y = 0,Ny
-        Pny_tab(y,n) = 0d0
-        Sny_tab(y,n-1) = 0d0
+    do in = 1,Nn
+      do iy = 0,Ny
+        Pny_tab(iy,in) = 0d0
+        Sny_tab(iy,in-1) = 0d0
       end do
     end do
   end subroutine initialize
 
   ! print Pny
   subroutine print_Pny(u)
-    integer,intent(in) :: u
-    integer :: n,y
-    do y = 0,Ny
-      do n = 0,Nn
-        write(u,'(es12.3)',advance='no') Pny_tab(y,n)
+    integer, intent(in) :: u
+    integer :: in,iy
+    write(u,*) "P_ny"
+    do iy = 0,Ny
+      do in = 0,Nn
+        write(u,'(es12.4)',advance='no') Pny_tab(iy,in)
       enddo
       write(u,*)
     enddo
+    write(u,*)
   end subroutine print_Pny
+
+  ! print Pny cumulative
+  subroutine print_Pny_2(u)
+    integer, intent(in) :: u
+    integer :: in,iy
+    real(wp) :: tmp
+    write(u,*) "P_ny cumulative"
+    do iy = 0,Ny
+      write(u,'(es12.4)',advance='no') Pny_tab(iy,0)
+      tmp = 0d0
+      do in = 1,Nn
+        tmp = tmp + Pny_tab(iy,in)
+        write(u,'(es12.4)',advance='no') tmp
+      enddo
+      write(u,*)
+    enddo
+    write(u,*)
+  end subroutine print_Pny_2
 
   ! print Sny
   subroutine print_Sny(u)
     integer,intent(in) :: u
-    integer :: n,y
-    do y = 0,Ny
-      do n = 0,Nn-1
-        write(u,'(es12.3)',advance='no') Sny_tab(y,n)
+    integer :: in,iy
+    write(u,*) "S_ny"
+    do iy = 0,Ny
+      do in = 0,Nn-1
+        write(u,'(es12.4)',advance='no') Sny_tab(iy,in)
       enddo
       write(u,*)
     enddo
+    write(u,*)
   end subroutine print_Sny
 
-  pure function gam(yp) result(res)
+  pure function gam2(yp) result(res)
     real(wp), intent(in) :: yp
     real(wp) :: res
     res = 4d0 * Nc / b / (yp + lambda)
     return
-  end function gam
+  end function gam2
+
+  function get_Pny(y,n) result(res)
+    real(wp), intent(in) :: y
+    integer, intent(in) :: n
+    real(wp) :: res
+    integer :: i
+    real(wp) :: yL, yH, PL, PH
+    if(y.lt.ymin .or. y.gt.ymax) res = 0d0
+    i = floor(Ny*(y-ymin)/(ymax-ymin))
+    yL = Pny_tab(i,0)
+    yH = Pny_tab(i+1,0)
+    PL = Pny_tab(i,n)
+    PH = Pny_tab(i+1,n)
+    res = PL + (PH - PL) * (y - yL) / (yH - yL)
+    return
+  end function get_Pny
 
   function Sny_int(yp) result(res)
     real(wp), intent(in) :: yp
     real(wp) :: res
-    res = (y_now - yp) * gam(yp)
+    if(n_now.eq.1) then
+      res = (y_now - yp) * gam2(yp)
+    elseif(n_now.gt.1) then
+      res = (y_now - yp) * gam2(yp) * get_Pny(yp,n_now-1)
+    else
+      res = 0d0
+    endif
     return
   end function Sny_int
 
@@ -133,10 +177,10 @@ contains
     ypmin = ymin
     epsabs = 0d0
     epsrel = 1d-10
-    key = 6
+    key = 1
     do iy = 0,Ny
-      ypmax = Pny_tab(iy,0)
-      y_now = ypmax
+      y_now = Pny_tab(iy,0)
+      ypmax = y_now
       call dqag ( Sny_int, ypmin, ypmax, epsabs, epsrel, &
         key, result, abserr, neval, ier, &
         limit, lenw, last, iwork, work )
@@ -146,10 +190,22 @@ contains
 
   subroutine set_Pny(n)
     integer, intent(in) :: n
-    integer :: iy
-    do iy = 0,Ny
-      Pny_tab(iy,n) = exp( - Sny_tab(iy,n-1) )
-    end do
+    integer :: iy,i
+    if(n.eq.1) then
+      do iy = 0,Ny
+        Pny_tab(iy,n) = exp( - Sny_tab(iy,n-1) )
+      end do
+    elseif(n.gt.1) then
+      do iy = 0,Ny
+        do i = 1,n-1
+          Pny_tab(iy,n) = real(i,wp)/(n-1) * Pny_tab(iy,n-i) * Sny_tab(iy,i)
+        enddo
+      end do
+    else
+      do iy = 0,Ny
+        Pny_tab(iy,n) = 0d0
+      end do
+    endif
   end subroutine set_Pny
 
 end module md
@@ -158,11 +214,35 @@ program main
   use md
   use iso_fortran_env, only: stdout=>output_unit
   implicit none
-  call timestamp
+  integer :: n,u
+  ! integer :: iy
+  ! double precision :: tmp,tot
+  ! double precision :: y1,y2,y3
+  ! call timestamp
   call initialize
-  call set_Sny(1)
-  call set_Pny(1)
-  call print_Sny(stdout)
-  call print_Pny(stdout)
-  call timestamp
+  do n = 1,Nn
+    call set_Sny(n)
+    call set_Pny(n)
+  enddo
+  u = stdout
+  ! u = 66
+  ! open(unit=u,file='Pny.dat')
+  ! do n = 1,Nn
+  !   y1 = log(60d0/Q0)
+  !   y2 = log(300d0/Q0)
+  !   y3 = log(1000d0/Q0)
+  !   write(u,*) n,get_Pny(y1,n),get_Pny(y2,n),get_Pny(y3,n)
+  ! enddo
+  ! call print_Sny(u)
+  ! call print_Pny(u)
+
+  ! tot = 0d0
+  ! do iy = 1,Ny-2
+  !   tmp = Pny_tab(iy,1)
+  !   tot = tot + 0.5d0 * (7d0-tmp) * gam2(tmp) * tmp
+  ! enddo
+  ! write(*,*) tot
+  call print_Pny_2(u)
+  ! close(u)
+  ! call timestamp
 end program main
