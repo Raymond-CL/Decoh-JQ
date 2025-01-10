@@ -127,6 +127,7 @@ contains
     write(u,*)
   end subroutine print_Sny
 
+  ! \gamma_0^2(yp) function (pure may optimize)
   pure function gam2(yp) result(res)
     real(wp), intent(in) :: yp
     real(wp) :: res
@@ -134,6 +135,7 @@ contains
     return
   end function gam2
 
+  ! interpolation function
   function get_Pny(y,n) result(res)
     real(wp), intent(in) :: y
     integer, intent(in) :: n
@@ -150,6 +152,7 @@ contains
     return
   end function get_Pny
 
+  ! integrand function
   function Sny_int(yp) result(res)
     real(wp), intent(in) :: yp
     real(wp) :: res
@@ -163,6 +166,7 @@ contains
     return
   end function Sny_int
 
+  ! calculate Sny with QAG integration
   subroutine set_Sny(n)
     integer, intent(in) :: n
     integer :: iy
@@ -189,6 +193,7 @@ contains
     end do
   end subroutine set_Sny
 
+  ! set Pny using recursive algorithm
   subroutine set_Pny(n)
     integer, intent(in) :: n
     integer :: iy,in
@@ -211,6 +216,7 @@ contains
 
 end module md
 
+! main program (will be in separate file)
 program main
   use md
   use iso_fortran_env, only: stdout=>output_unit
