@@ -48,15 +48,16 @@ module md
   integer,  parameter :: Nf=3
   real(wp), parameter :: b=11d0/3d0*Nc-2d0/3d0*Nf
   ! QCD scales
-  real(wp), parameter :: Lqcd=0.247d0
-  real(wp), parameter :: Q0=0.5d0
+  real(wp), parameter :: Lqcd=0.245748d0
+  real(wp), parameter :: Q0=39.99d0 !0.5d0
   real(wp), parameter :: lambda=log(Q0/Lqcd)
   ! scale range y=log(Q/Q0)
   real(wp), parameter :: ymin=0d0
   real(wp), parameter :: ymax=8d0
   ! table dimensions
-  integer,  parameter :: Nn=5
-  integer,  parameter :: Ny=16
+  integer,  parameter :: Nn=3
+  integer,  parameter :: Ny=800
+  real(wp), parameter :: ybin=(ymax-ymin)/Ny
   ! data table
   real(wp) :: Pny_tab(0:Ny,0:Nn)
   real(wp) :: Sny_tab(0:Ny,0:Nn-1)
@@ -70,7 +71,7 @@ contains
   subroutine initialize
     integer :: in,iy
     do iy = 0,Ny
-      Pny_tab(iy,0) = ymin + iy * (ymax - ymin) / Ny
+      Pny_tab(iy,0) = ymin + iy * ybin
     end do
     do in = 1,Nn
       do iy = 0,Ny
@@ -140,7 +141,7 @@ contains
     integer :: i
     real(wp) :: yL, yH, PL, PH
     if(y.lt.ymin .or. y.gt.ymax) res = 0d0
-    i = floor(Ny*(y-ymin)/(ymax-ymin))
+    i = floor((y-ymin)/ybin)
     yL = Pny_tab(i,0)
     yH = Pny_tab(i+1,0)
     PL = Pny_tab(i,n)
@@ -190,15 +191,15 @@ contains
 
   subroutine set_Pny(n)
     integer, intent(in) :: n
-    integer :: iy,i
+    integer :: iy,in
     if(n.eq.1) then
       do iy = 0,Ny
         Pny_tab(iy,n) = exp( - Sny_tab(iy,n-1) )
       end do
     elseif(n.gt.1) then
       do iy = 0,Ny
-        do i = 1,n-1
-          Pny_tab(iy,n) = real(i,wp)/(n-1) * Pny_tab(iy,n-i) * Sny_tab(iy,i)
+        do in = 1,n-1
+          Pny_tab(iy,n) = real(in,wp)/(n-1) * Pny_tab(iy,n-in) * Sny_tab(iy,in)
         enddo
       end do
     else
@@ -237,14 +238,16 @@ program main
   ! enddo
   ! call print_Sny(u)
   ! call print_Pny(u)
-  do i=1,20
-    pt = i*50d0 + 40d0
-    ptm = pt * 0.4d0
+
+  do i=1,100
+    pt = i*10d0 + 40d0
+    ptm = pt * 1d0!0.4d0
     ytmp = log(ptm/Q0)
-    write(u,'(es12.4)',advance='no') pt
-    do in = 1,6
-      write(u,'(es12.4)',advance='no') get_Pny(ytmp,in)
-    enddo
+    write(u,'(es12.4)',advance='no') ptm
+    write(u,'(es12.4)',advance='no') ytmp
+    ! do in = 1,6
+      write(u,'(es12.4)',advance='no') get_Pny(ytmp,1)
+    ! enddo
     write(u,*)
   enddo
   ! tot = 0d0
