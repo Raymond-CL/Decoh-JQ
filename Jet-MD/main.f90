@@ -13,8 +13,8 @@ module md
   !   - S_i(y) = \int_0^y dy' (y-y') * \gamma(y') P_i(y')
   !   - using an iterative algorithm, we can generate
   !     a table of Pn(y) up to n = Nn
-  !   - Pny_table(:,0) stores y values
-  !   - Pny_table(:,1:n) stores P_n values
+  !   - Pny_table(:,0) stores y values (the 0th column)
+  !   - Pny_table(:,1:n) stores P_n values (from 1st column on-wards)
   !   - Sny_table(:,n-1) is used to stores temporary integration results
   ! Parameters:
   !   - Nf, Lqcd: for Nf=3, Lqcd~0.247
@@ -43,24 +43,28 @@ module md
 
   use iso_fortran_env, only: wp=>real64
   implicit none
-  ! color factors
+  ! QCD parameters
   real(wp), parameter :: Nc=3d0
+  real(wp), parameter :: CA=Nc
+  real(wp), parameter :: CF=(Nc**2-1d0)/(2d0*Nc)
   integer,  parameter :: Nf=3
   real(wp), parameter :: b=11d0/3d0*Nc-2d0/3d0*Nf
-  ! QCD scales
   real(wp), parameter :: Lqcd=0.245748d0
-  real(wp), parameter :: Q0=39.99d0 !0.5d0
+  ! hadronization (perturbative) scales
+  real(wp), parameter :: Q0=1.45d0 !0.5d0
   real(wp), parameter :: lambda=log(Q0/Lqcd)
   ! scale range y=log(Q/Q0)
   real(wp), parameter :: ymin=0d0
   real(wp), parameter :: ymax=8d0
   ! table dimensions
   integer,  parameter :: Nn=3
-  integer,  parameter :: Ny=800
+  integer,  parameter :: Ny=16
   real(wp), parameter :: ybin=(ymax-ymin)/Ny
   ! data table
-  real(wp) :: Pny_tab(0:Ny,0:Nn)
-  real(wp) :: Sny_tab(0:Ny,0:Nn-1)
+  real(wp) :: Pg(0:Ny,0:Nn)
+  real(wp) :: Pq(0:Ny,0:Nn)
+  real(wp) :: Sg(0:Ny,1:Nn-1)
+  real(wp) :: Sq(0:Ny,1:Nn-1)
   ! tmp var to keep track of current n and y
   integer :: n_now
   real(wp) :: y_now
@@ -71,148 +75,164 @@ contains
   subroutine initialize
     integer :: in,iy
     do iy = 0,Ny
-      Pny_tab(iy,0) = ymin + iy * ybin
+      y_now = ymin + iy * ybin
+      Pg(iy,0) = y_now
+      Pq(iy,0) = y_now
     end do
     do in = 1,Nn
       do iy = 0,Ny
-        Pny_tab(iy,in) = 0d0
-        Sny_tab(iy,in-1) = 0d0
+        Pg(iy,in) = 0d0
+        Pq(iy,in) = 0d0
+      end do
+    end do
+    do in = 1,Nn-1
+      do iy = 0,Ny
+        Sg(iy,in) = 0d0
+        Sq(iy,in) = 0d0
       end do
     end do
   end subroutine initialize
 
-  ! print Pny
-  subroutine print_Pny(u)
+  subroutine print_Pg(u)
     integer, intent(in) :: u
     integer :: in,iy
-    write(u,*) "P_ny"
+    write(u,*) "Pg(y,n) table"
     do iy = 0,Ny
       do in = 0,Nn
-        write(u,'(es12.4)',advance='no') Pny_tab(iy,in)
+        write(u,'(es12.4)',advance='no') Pg(iy,in)
       enddo
       write(u,*)
     enddo
     write(u,*)
-  end subroutine print_Pny
+  end subroutine print_Pg
 
   ! print Pny cumulative
-  subroutine print_Pny_2(u)
-    integer, intent(in) :: u
-    integer :: in,iy
-    real(wp) :: tmp
-    write(u,*) "P_ny cumulative"
-    do iy = 0,Ny
-      write(u,'(es12.4)',advance='no') Pny_tab(iy,0)
-      tmp = 0d0
-      do in = 1,Nn
-        tmp = tmp + Pny_tab(iy,in)
-        write(u,'(es12.4)',advance='no') tmp
-      enddo
-      write(u,*)
-    enddo
-    write(u,*)
-  end subroutine print_Pny_2
+  ! subroutine print_Pny_2(u)
+  !   integer, intent(in) :: u
+  !   integer :: in,iy
+  !   real(wp) :: tmp
+  !   write(u,*) "P_ny cumulative"
+  !   do iy = 0,Ny
+  !     write(u,'(es12.4)',advance='no') Pny_tab(iy,0)
+  !     tmp = 0d0
+  !     do in = 1,Nn
+  !       tmp = tmp + Pny_tab(iy,in)
+  !       write(u,'(es12.4)',advance='no') tmp
+  !     enddo
+  !     write(u,*)
+  !   enddo
+  !   write(u,*)
+  ! end subroutine print_Pny_2
 
-  ! print Sny
-  subroutine print_Sny(u)
+  subroutine print_Sg(u)
     integer,intent(in) :: u
     integer :: in,iy
-    write(u,*) "S_ny"
+    write(u,*) "Sg(y,n) table"
     do iy = 0,Ny
-      do in = 0,Nn-1
-        write(u,'(es12.4)',advance='no') Sny_tab(iy,in)
+      do in = 1,Nn-1
+        write(u,'(es12.4)',advance='no') Sg(iy,in)
       enddo
       write(u,*)
     enddo
     write(u,*)
-  end subroutine print_Sny
+  end subroutine print_Sg
 
   ! \gamma_0^2(yp) function (pure may optimize)
-  pure function gam2(yp) result(res)
+  pure function gam2g(yp) result(res)
     real(wp), intent(in) :: yp
     real(wp) :: res
-    res = 4d0 * Nc / b / (yp + lambda)
+    res = 4d0 * CA / b / (yp + lambda)
     return
-  end function gam2
+  end function gam2g
 
-  ! interpolation function
-  function get_Pny(y,n) result(res)
-    real(wp), intent(in) :: y
-    integer, intent(in) :: n
-    real(wp) :: res
-    integer :: i
-    real(wp) :: yL, yH, PL, PH
-    if(y.lt.ymin .or. y.gt.ymax) res = 0d0
-    i = floor((y-ymin)/ybin)
-    yL = Pny_tab(i,0)
-    yH = Pny_tab(i+1,0)
-    PL = Pny_tab(i,n)
-    PH = Pny_tab(i+1,n)
-    res = PL + (PH - PL) * (y - yL) / (yH - yL)
-    return
-  end function get_Pny
+  ! pure function gam2q(yp) result(res)
+  !   real(wp), intent(in) :: yp
+  !   real(wp) :: res
+  !   res = 4d0 * CF / b / (yp + lambda)
+  !   return
+  ! end function gam2q
 
-  ! integrand function
-  function Sny_int(yp) result(res)
-    real(wp), intent(in) :: yp
-    real(wp) :: res
-    if(n_now.eq.1) then
-      res = (y_now - yp) * gam2(yp)
-    elseif(n_now.gt.1) then
-      res = (y_now - yp) * gam2(yp) * get_Pny(yp,n_now-1)
-    else
-      res = 0d0
-    endif
-    return
-  end function Sny_int
-
-  ! calculate Sny with QAG integration
-  subroutine set_Sny(n)
-    integer, intent(in) :: n
-    integer :: iy
-    real(wp) :: ypmin,ypmax
-    real(wp) :: epsabs,epsrel
-    integer :: key
-    real(wp) :: result,abserr
-    integer :: neval,ier
-    integer, parameter :: limit = 1000
-    integer, parameter :: lenw = 10 * limit
-    integer :: last,iwork(limit),work(lenw)
-    n_now = n
-    ypmin = ymin
-    epsabs = 0d0
-    epsrel = 1d-10
-    key = 1
-    do iy = 0,Ny
-      y_now = Pny_tab(iy,0)
-      ypmax = y_now
-      call dqag ( Sny_int, ypmin, ypmax, epsabs, epsrel, &
-        key, result, abserr, neval, ier, &
-        limit, lenw, last, iwork, work )
-      Sny_tab(iy,n-1) = result
-    end do
-  end subroutine set_Sny
-
-  ! set Pny using recursive algorithm
-  subroutine set_Pny(n)
+  subroutine set_Pg(n)
     integer, intent(in) :: n
     integer :: iy,in
+    real(wp) :: y_cap,total
     if(n.eq.1) then
       do iy = 0,Ny
-        Pny_tab(iy,n) = exp( - Sny_tab(iy,n-1) )
+        y_now = Pg(iy,0)
+        y_cap = y_now + lambda
+        Pg(iy,n) = exp( gam2g(y_now)*y_cap*(y_now + y_cap*log(lambda/y_cap)) )
       end do
     elseif(n.gt.1) then
+      call set_Sg(n)
       do iy = 0,Ny
+        total = 0d0
         do in = 1,n-1
-          Pny_tab(iy,n) = real(in,wp)/(n-1) * Pny_tab(iy,n-in) * Sny_tab(iy,in)
+          total = total + real(in,wp)/(n-1) * Pg(iy,n-in) * Sg(iy,in)
         enddo
-      end do
-    else
-      do iy = 0,Ny
-        Pny_tab(iy,n) = 0d0
+        Pg(iy,n) = total
       end do
     endif
-  end subroutine set_Pny
+  end subroutine set_Pg
+
+  ! interpolation function
+  ! function get_Pny(y,n) result(res)
+  !   real(wp), intent(in) :: y
+  !   integer, intent(in) :: n
+  !   real(wp) :: res
+  !   integer :: i
+  !   real(wp) :: yL, yH, PL, PH
+  !   if(y.lt.ymin .or. y.gt.ymax) res = 0d0
+  !   i = floor((y-ymin)/ybin)
+  !   yL = Pny_tab(i,0)
+  !   yH = Pny_tab(i+1,0)
+  !   PL = Pny_tab(i,n)
+  !   PH = Pny_tab(i+1,n)
+  !   res = PL + (PH - PL) * (y - yL) / (yH - yL)
+  !   return
+  ! end function get_Pny
+
+  ! integrand function
+  ! function Sny_int(yp) result(res)
+  !   real(wp), intent(in) :: yp
+  !   real(wp) :: res
+  !   if(n_now.eq.1) then
+  !     res = (y_now - yp) * gam2(yp)
+  !   elseif(n_now.gt.1) then
+  !     res = (y_now - yp) * gam2(yp) * get_Pny(yp,n_now-1)
+  !   else
+  !     res = 0d0
+  !   endif
+  !   return
+  ! end function Sny_int
+
+  ! calculate Sny with QAG integration
+  subroutine set_Sg(n)
+    integer, intent(in) :: n
+  !   integer :: iy
+  !   real(wp) :: ypmin,ypmax
+  !   real(wp) :: epsabs,epsrel
+  !   integer :: key
+  !   real(wp) :: result,abserr
+  !   integer :: neval,ier
+  !   integer, parameter :: limit = 1000
+  !   integer, parameter :: lenw = 10 * limit
+  !   integer :: last,iwork(limit),work(lenw)
+  !   n_now = n
+  !   ypmin = ymin
+  !   epsabs = 0d0
+  !   epsrel = 1d-10
+  !   key = 1
+  !   do iy = 0,Ny
+  !     y_now = Pny_tab(iy,0)
+  !     ypmax = y_now
+  !     call dqag ( Sny_int, ypmin, ypmax, epsabs, epsrel, &
+  !       key, result, abserr, neval, ier, &
+  !       limit, lenw, last, iwork, work )
+  !     Sny_tab(iy,n-1) = result
+  !   end do
+  end subroutine set_Sg
+
+
 
 end module md
 
@@ -221,18 +241,20 @@ program main
   use md
   use iso_fortran_env, only: stdout=>output_unit
   implicit none
-  integer :: n,u
+  integer :: u
+  ! integer :: n,u
 
-  integer :: i,in
-  double precision :: pt,ptm,ytmp
+  ! integer :: i,in
+  ! double precision :: pt,ptm,ytmp
+
   ! double precision :: tmp,tot
   ! double precision :: y1,y2,y3
   ! call timestamp
   call initialize
-  do n = 1,Nn
-    call set_Sny(n)
-    call set_Pny(n)
-  enddo
+  ! do n = 1,Nn
+  ! call set_Sny(1)
+  call set_Pg(1)
+  ! enddo
   u = stdout
   ! u = 66
   ! open(unit=u,file='Pny.dat')
@@ -242,20 +264,20 @@ program main
   !   y3 = log(1000d0/Q0)
   !   write(u,*) n,get_Pny(y1,n),get_Pny(y2,n),get_Pny(y3,n)
   ! enddo
-  ! call print_Sny(u)
-  ! call print_Pny(u)
+  call print_Pg(u)
+  call print_Sg(u)
 
-  do i=1,100
-    pt = i*10d0 + 40d0
-    ptm = pt * 1d0!0.4d0
-    ytmp = log(ptm/Q0)
-    write(u,'(es12.4)',advance='no') ptm
-    write(u,'(es12.4)',advance='no') ytmp
-    ! do in = 1,6
-      write(u,'(es12.4)',advance='no') get_Pny(ytmp,1)
-    ! enddo
-    write(u,*)
-  enddo
+  ! do i=1,100
+  !   pt = i*10d0 + 40d0
+  !   ptm = pt * 1d0!0.4d0
+  !   ytmp = log(ptm/Q0)
+  !   write(u,'(es12.4)',advance='no') ptm
+  !   write(u,'(es12.4)',advance='no') ytmp
+  !   ! do in = 1,6
+  !     write(u,'(es12.4)',advance='no') get_Pny(ytmp,1)
+  !   ! enddo
+  !   write(u,*)
+  ! enddo
   ! need to test new stuff
   ! tot = 0d0
   ! do iy = 1,Ny-2
