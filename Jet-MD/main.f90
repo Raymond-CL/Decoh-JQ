@@ -57,14 +57,18 @@ module md
   real(wp), parameter :: ymin=0d0
   real(wp), parameter :: ymax=8d0
   ! table dimensions
-  integer,  parameter :: Nn=3
-  integer,  parameter :: Ny=16
+  integer,  parameter :: Nn=10000
+  integer,  parameter :: Ny=80
   real(wp), parameter :: ybin=(ymax-ymin)/Ny
   ! data table
   real(wp) :: Pg(0:Ny,0:Nn)
   real(wp) :: Pq(0:Ny,0:Nn)
   real(wp) :: Sg(0:Ny,1:Nn-1)
   real(wp) :: Sq(0:Ny,1:Nn-1)
+  real(wp) :: nbarg(0:Ny)
+  real(wp) :: nbarq(0:Ny)
+  ! integration accuracy
+  integer :: ikey = 1 ! 1-6, 6 for highest accuracy
   ! tmp var to keep track of current n and y
   integer :: n_now
   real(wp) :: y_now
@@ -95,8 +99,8 @@ contains
 
   subroutine print_Pg(u)
     integer, intent(in) :: u
-    integer :: in,iy
-    write(u,*) "Pg(y,n) table"
+    integer :: iy,in
+    ! write(u,*) "Pg(y,n) table"
     do iy = 0,Ny
       do in = 0,Nn
         write(u,'(es12.4)',advance='no') Pg(iy,in)
@@ -126,9 +130,10 @@ contains
 
   subroutine print_Sg(u)
     integer,intent(in) :: u
-    integer :: in,iy
+    integer :: iy,in
     write(u,*) "Sg(y,n) table"
     do iy = 0,Ny
+      write(u,'(12x)',advance='no')
       do in = 1,Nn-1
         write(u,'(es12.4)',advance='no') Sg(iy,in)
       enddo
@@ -136,6 +141,16 @@ contains
     enddo
     write(u,*)
   end subroutine print_Sg
+
+  subroutine print_nbarg(u)
+    integer,intent(in) :: u
+    integer :: iy
+    write(u,*) "<ng>(y) table"
+    do iy = 0,Ny
+      write(u,'(2es12.4)') Pg(iy,0), nbarg(iy)
+    enddo
+    write(u,*)
+  end subroutine print_nbarg
 
   ! \gamma_0^2(yp) function (pure may optimize)
   pure function gam2g(yp) result(res)
@@ -163,7 +178,7 @@ contains
         Pg(iy,n) = exp( gam2g(y_now)*y_cap*(y_now + y_cap*log(lambda/y_cap)) )
       end do
     elseif(n.gt.1) then
-      call set_Sg(n)
+      call set_Sg(n-1)
       do iy = 0,Ny
         total = 0d0
         do in = 1,n-1
@@ -175,63 +190,69 @@ contains
   end subroutine set_Pg
 
   ! interpolation function
-  ! function get_Pny(y,n) result(res)
-  !   real(wp), intent(in) :: y
-  !   integer, intent(in) :: n
-  !   real(wp) :: res
-  !   integer :: i
-  !   real(wp) :: yL, yH, PL, PH
-  !   if(y.lt.ymin .or. y.gt.ymax) res = 0d0
-  !   i = floor((y-ymin)/ybin)
-  !   yL = Pny_tab(i,0)
-  !   yH = Pny_tab(i+1,0)
-  !   PL = Pny_tab(i,n)
-  !   PH = Pny_tab(i+1,n)
-  !   res = PL + (PH - PL) * (y - yL) / (yH - yL)
-  !   return
-  ! end function get_Pny
+  function get_Pg(y,n) result(res)
+    real(wp), intent(in) :: y
+    integer, intent(in) :: n
+    real(wp) :: res
+    integer :: i
+    real(wp) :: yL, yH, PL, PH
+    if(y.lt.ymin .or. y.gt.ymax) res = 0d0
+    i = floor((y-ymin)/ybin)
+    yL = Pg(i,0)
+    yH = Pg(i+1,0)
+    PL = Pg(i,n)
+    PH = Pg(i+1,n)
+    res = PL + (PH - PL) * (y - yL) / (yH - yL)
+    return
+  end function get_Pg
 
   ! integrand function
-  ! function Sny_int(yp) result(res)
-  !   real(wp), intent(in) :: yp
-  !   real(wp) :: res
-  !   if(n_now.eq.1) then
-  !     res = (y_now - yp) * gam2(yp)
-  !   elseif(n_now.gt.1) then
-  !     res = (y_now - yp) * gam2(yp) * get_Pny(yp,n_now-1)
-  !   else
-  !     res = 0d0
-  !   endif
-  !   return
-  ! end function Sny_int
+  function Sg_int(yp) result(res)
+    real(wp), intent(in) :: yp
+    real(wp) :: res
+    res = 0d0
+    if(n_now.le.1) return
+    res = (y_now - yp) * gam2g(yp) * get_Pg(yp,n_now-1)
+    return
+  end function Sg_int
 
   ! calculate Sny with QAG integration
   subroutine set_Sg(n)
     integer, intent(in) :: n
-  !   integer :: iy
-  !   real(wp) :: ypmin,ypmax
-  !   real(wp) :: epsabs,epsrel
-  !   integer :: key
-  !   real(wp) :: result,abserr
-  !   integer :: neval,ier
-  !   integer, parameter :: limit = 1000
-  !   integer, parameter :: lenw = 10 * limit
-  !   integer :: last,iwork(limit),work(lenw)
-  !   n_now = n
-  !   ypmin = ymin
-  !   epsabs = 0d0
-  !   epsrel = 1d-10
-  !   key = 1
-  !   do iy = 0,Ny
-  !     y_now = Pny_tab(iy,0)
-  !     ypmax = y_now
-  !     call dqag ( Sny_int, ypmin, ypmax, epsabs, epsrel, &
-  !       key, result, abserr, neval, ier, &
-  !       limit, lenw, last, iwork, work )
-  !     Sny_tab(iy,n-1) = result
-  !   end do
+    integer :: iy
+    real(wp) :: ypmin,ypmax
+    real(wp) :: epsabs,epsrel
+    integer :: key
+    real(wp) :: result,abserr
+    integer :: neval,ier
+    integer, parameter :: limit = 1000
+    integer, parameter :: lenw = 10 * limit
+    integer :: last,iwork(limit),work(lenw)
+    n_now = n+1
+    ypmin = ymin
+    epsabs = 0d0
+    epsrel = 1d-10
+    key = ikey
+    do iy = 0,Ny
+      y_now = Pg(iy,0)
+      ypmax = y_now
+      call dqag ( Sg_int, ypmin, ypmax, epsabs, epsrel, &
+        key, result, abserr, neval, ier, &
+        limit, lenw, last, iwork, work )
+      Sg(iy,n) = result
+    end do
   end subroutine set_Sg
 
+  subroutine set_nbarg
+    integer :: iy,in
+    real(wp) :: avg
+    do iy = 0,Ny
+      do in = 0,Nn
+        avg = avg + in * Pg(iy,in)
+      end do
+      nbarg(iy) = avg
+    end do
+  end subroutine set_nbarg
 
 
 end module md
@@ -242,50 +263,22 @@ program main
   use iso_fortran_env, only: stdout=>output_unit
   implicit none
   integer :: u
-  ! integer :: n,u
+  integer :: i
+  call timestamp
 
-  ! integer :: i,in
-  ! double precision :: pt,ptm,ytmp
-
-  ! double precision :: tmp,tot
-  ! double precision :: y1,y2,y3
-  ! call timestamp
   call initialize
-  ! do n = 1,Nn
-  ! call set_Sny(1)
-  call set_Pg(1)
-  ! enddo
-  u = stdout
-  ! u = 66
-  ! open(unit=u,file='Pny.dat')
-  ! do n = 1,Nn
-  !   y1 = log(60d0/Q0)
-  !   y2 = log(300d0/Q0)
-  !   y3 = log(1000d0/Q0)
-  !   write(u,*) n,get_Pny(y1,n),get_Pny(y2,n),get_Pny(y3,n)
-  ! enddo
-  call print_Pg(u)
-  call print_Sg(u)
+  do i=1,Nn
+    call set_Pg(i)
+  end do
+  call set_nbarg
 
-  ! do i=1,100
-  !   pt = i*10d0 + 40d0
-  !   ptm = pt * 1d0!0.4d0
-  !   ytmp = log(ptm/Q0)
-  !   write(u,'(es12.4)',advance='no') ptm
-  !   write(u,'(es12.4)',advance='no') ytmp
-  !   ! do in = 1,6
-  !     write(u,'(es12.4)',advance='no') get_Pny(ytmp,1)
-  !   ! enddo
-  !   write(u,*)
-  ! enddo
-  ! need to test new stuff
-  ! tot = 0d0
-  ! do iy = 1,Ny-2
-  !   tmp = Pny_tab(iy,1)
-  !   tot = tot + 0.5d0 * (7d0-tmp) * gam2(tmp) * tmp
-  ! enddo
-  ! write(*,*) tot
-  ! call print_Pny_2(u)
+  ! u = 66
+  ! open(unit=u,file='Pyn.dat')
+  ! call print_Pg(u)
   ! close(u)
-  ! call timestamp
+  
+  u = stdout
+  call print_nbarg(u)
+
+  call timestamp
 end program main
