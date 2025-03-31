@@ -1,0 +1,14 @@
+# The fortran modules provided by this target.
+provides
+ bdmps.mod
+ const.mod
+ eventcounter.mod
+ histloop.mod
+ kinematics.mod
+ multi.mod
+ optflags.mod
+ phyconst.mod
+ qcd.mod
+ sysio.mod
+ time.mod
+ vint.mod

@@ -57,7 +57,7 @@ module md
   real(wp), parameter :: ymin=0d0
   real(wp), parameter :: ymax=8d0
   ! table dimensions
-  integer,  parameter :: Nn=10000
+  integer,  parameter :: Nn=1000
   integer,  parameter :: Ny=80
   real(wp), parameter :: ybin=(ymax-ymin)/Ny
   ! data table

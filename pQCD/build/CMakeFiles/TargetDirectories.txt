@@ -1,0 +1,3 @@
+/home/raymondchen/Decoh-JQ/pQCD/build/CMakeFiles/eloss.exe.dir
+/home/raymondchen/Decoh-JQ/pQCD/build/CMakeFiles/edit_cache.dir
+/home/raymondchen/Decoh-JQ/pQCD/build/CMakeFiles/rebuild_cache.dir
